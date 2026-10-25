@@ -13,14 +13,14 @@ async function api(path = '', options = {}) {
 }
 function message(role, text) {
   const el = document.createElement('div'); el.className = 'message ' + role;
-  const label = document.createElement('small'); label.textContent = role === 'user' ? 'You' : 'AURA';
+  const label = document.createElement('small'); label.textContent = role === 'user' ? 'You' : 'ZUNO';
   const body = document.createElement('span'); body.textContent = text;
   el.append(label, body); $('thread').append(el); $('thread').scrollTop = $('thread').scrollHeight;
   $('suggestions').hidden = true; return el;
 }
 function typing() {
-  const el = document.createElement('div'); el.className = 'typing-indicator'; el.id = 'typing-indicator'; el.setAttribute('aria-label', 'AURA is thinking');
-  const label = document.createElement('small'); label.textContent = 'AURA';
+  const el = document.createElement('div'); el.className = 'typing-indicator'; el.id = 'typing-indicator'; el.setAttribute('aria-label', 'ZUNO is thinking');
+  const label = document.createElement('small'); label.textContent = 'ZUNO';
   const dots = document.createElement('span'); dots.className = 'typing-dots'; dots.setAttribute('aria-hidden', 'true');
   for (let i = 0; i < 3; i++) dots.append(document.createElement('i'));
   el.append(label, dots); $('thread').append(el); $('thread').scrollTop = $('thread').scrollHeight; return el;
@@ -34,7 +34,7 @@ function lock() {
 const clock = new Date();
 $('header-date').textContent = clock.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 $('pulse-date').textContent = clock.toLocaleDateString([], { month: 'short', day: 'numeric' });
-$('hero-talk').onclick = () => { $('message').focus({ preventScroll: true }); $('chat-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+$('hero-talk').onclick = () => { $('call').click(); $('companion').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
 $('hero-plan').onclick = () => $('daily-planner').scrollIntoView({ behavior: 'smooth', block: 'start' });
 $('composer-mic').onclick = () => {
   if (busy || call) return;
@@ -52,20 +52,20 @@ async function initialize() {
     $('notes').value = data.notes; renderHistory(data.messages);
     $('provider-state').textContent = configured ? 'Ready when you are' : 'AI setup needed';
     if (!configured) notice(data.chatConfigured ? 'AI chat is ready. Add GEMINI_API_KEY to .env and restart to enable voice calls.' : 'Add GEMINI_API_KEY or NVIDIA_API_KEY to .env and restart to enable AI. Offline ideas remain available.');
-    $('message').placeholder = data.chatProvider === 'nvidia' ? 'Ask AURA anything… · NVIDIA chat' : 'Ask AURA anything…';
+    $('message').placeholder = data.chatProvider === 'nvidia' ? 'Ask ZUNO anything… · NVIDIA chat' : 'Ask ZUNO anything…';
   } catch (error) { notice('Unable to load your space. Check your connection and refresh.'); }
 }
 $('chat-form').addEventListener('submit', async event => {
   event.preventDefault(); const text = $('message').value.trim();
   if (!text || busy || call) return;
   window.dispatchEvent(new CustomEvent('vibe-user-message', { detail: text }));
-  busy = true; lock(); notice('');
+  busy = true; window.ZunoMascot?.set('chat', 'thinking'); lock(); notice('');
   const pending = message('user', text); $('message').value = '';
   const indicator = typing();
-  $('provider-state').textContent = 'AURA is thinking…';
-  try { const data = await api('/chat', { method: 'POST', body: JSON.stringify({ text, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) }); indicator.remove(); message('model', data.text); }
-  catch (error) { pending.remove(); indicator.remove(); $('message').value = text; notice(error.message); }
-  finally { indicator.remove(); window.dispatchEvent(new Event('vibe-tasks-changed')); busy = false; lock(); $('provider-state').textContent = configured ? 'Ready when you are' : 'AI setup needed'; }
+  $('provider-state').textContent = 'ZUNO is thinking…';
+  try { const data = await api('/chat', { method: 'POST', body: JSON.stringify({ text, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) }); indicator.remove(); message('model', data.text); window.ZunoMascot?.set('chat-success', 'happy', 2500); }
+  catch (error) { window.ZunoMascot?.set('chat-error', 'error', 4500); pending.remove(); indicator.remove(); $('message').value = text; notice(error.message); }
+  finally { window.ZunoMascot?.clear('chat'); indicator.remove(); window.dispatchEvent(new Event('vibe-tasks-changed')); busy = false; lock(); $('provider-state').textContent = configured ? 'Ready when you are' : 'AI setup needed'; }
 });
 $('message').addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); $('chat-form').requestSubmit(); } });
 document.querySelectorAll('[data-prompt]').forEach(button => button.addEventListener('click', () => { $('message').value = button.dataset.prompt; $('chat-form').requestSubmit(); }));
@@ -112,11 +112,11 @@ function playAudio(c, base64) {
   const floats = buffer.getChannelData(0); for (let i = 0; i < floats.length; i++) floats[i] = view.getInt16(i * 2, true) / 32768;
   const source = c.audio.createBufferSource(); source.buffer = buffer; source.connect(c.audio.destination);
   c.next = Math.max(c.audio.currentTime + .03, c.next); source.start(c.next); c.next += buffer.duration; c.sources.add(source);
-  $('orb-scene').classList.add('speaking');
-  source.onended = () => { c.sources.delete(source); if (!c.sources.size && call === c) $('orb-scene').classList.remove('speaking'); };
+  $('orb-scene').classList.add('speaking'); window.ZunoMascot?.set('voice', 'speaking');
+  source.onended = () => { c.sources.delete(source); if (!c.sources.size && call === c) { $('orb-scene').classList.remove('speaking'); window.ZunoMascot?.set('voice', c.muted ? 'idle' : 'listening'); } };
 }
 function finishCall(reason = 'Call ended. Take a little calm with you.') {
-  const c = call; if (!c) return; call = null;
+  const c = call; if (!c) return; call = null; window.ZunoMascot?.clear('voice');
   clearInterval(c.timer); clearTimeout(c.timeout); c.stream?.getTracks().forEach(track => track.stop());
   c.capture?.disconnect(); c.mic?.disconnect(); stopAudio(c); c.audio?.close().catch(() => {});
   if (c.socket && c.socket.readyState < 2) c.socket.close();
@@ -143,7 +143,7 @@ $('call').onclick = async () => {
     if (call !== c) return;
     const { ticket } = await api('/call', { method: 'POST', body: JSON.stringify({ voice: $('voice').value, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) });
     if (call !== c) return;
-    $('call-status').textContent = 'Connecting to AURA…';
+    $('call-status').textContent = 'Connecting to ZUNO…';
     c.socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/companion/live?ticket=${encodeURIComponent(ticket)}`);
     c.socket.onmessage = event => {
       if (call !== c) return;
@@ -161,13 +161,13 @@ $('call').onclick = async () => {
             const bytes = new Uint8Array(buffer); let raw = ''; for (const byte of bytes) raw += String.fromCharCode(byte);
             c.socket.send(JSON.stringify({ type: 'audio', data: btoa(raw) }));
           };
-          c.mic.connect(c.capture); c.capture.connect(c.audio.destination);
+          c.mic.connect(c.capture); c.capture.connect(c.audio.destination); window.ZunoMascot?.set('voice', 'listening');
         } else if (data.type === 'audio') playAudio(c, data.data);
-        else if (data.type === 'interrupted') { stopAudio(c); c.captions = {}; $('orb-scene').classList.remove('speaking'); }
-        else if (data.type === 'caption') { c.captions[data.role] = ((c.captions[data.role] || '') + data.text).slice(-2000); $('caption').textContent = (data.role === 'user' ? 'You: ' : 'AURA: ') + c.captions[data.role]; }
+        else if (data.type === 'interrupted') { stopAudio(c); window.ZunoMascot?.set('voice', c.muted ? 'idle' : 'listening'); c.captions = {}; $('orb-scene').classList.remove('speaking'); }
+        else if (data.type === 'caption') { c.captions[data.role] = ((c.captions[data.role] || '') + data.text).slice(-2000); $('caption').textContent = (data.role === 'user' ? 'You: ' : 'ZUNO: ') + c.captions[data.role]; }
         else if (data.type === 'turnComplete') { if (c.captions.user) window.dispatchEvent(new CustomEvent('vibe-user-message', { detail: c.captions.user })); c.captions = {}; }
         else if (data.type === 'tasksChanged') window.dispatchEvent(new Event('vibe-tasks-changed'));
-        else if (data.type === 'error') finishCall(data.message);
+        else if (data.type === 'error') { finishCall(data.message); window.ZunoMascot?.set('voice-error', 'error', 4500); }
       } catch { finishCall('Audio could not be played. Please reconnect.'); }
     };
     c.socket.onerror = () => { if (call === c) finishCall('Voice connection failed. Check your connection and retry.'); };
@@ -177,7 +177,7 @@ $('call').onclick = async () => {
   }
 };
 $('mute').onclick = () => {
-  const c = call; if (!c?.ready) return; c.muted = !c.muted;
+  const c = call; if (!c?.ready) return; c.muted = !c.muted; window.ZunoMascot?.set('voice', c.sources.size ? 'speaking' : c.muted ? 'idle' : 'listening');
   c.stream.getAudioTracks().forEach(track => { track.enabled = !c.muted; });
   if (c.muted && c.socket.readyState === WebSocket.OPEN) c.socket.send(JSON.stringify({ type: 'mute' }));
   $('orb-scene').classList.toggle('muted', c.muted);

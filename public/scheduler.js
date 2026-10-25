@@ -60,6 +60,7 @@
     $('task-due').value = localInput(due); $('task-error').textContent = ''; $('task-dialog').showModal();
   }
   function reward(item) {
+    window.dispatchEvent(new Event('zuno-task-completed'));
     rewardTask = item; $('reward-for').textContent = `You finished: ${item.title}. That counts.`;
     $('reward-result').hidden = true; $('reward-reveal').hidden = false;
     if (!$('reward-dialog').open) $('reward-dialog').showModal();
@@ -82,7 +83,7 @@
     $('planner-count').textContent = `${done} / ${daily.length} done`;
     $('planner-progress').max = Math.max(1, daily.length); $('planner-progress').value = done;
     const container = $('planner-tasks'); container.replaceChildren();
-    if (!daily.length && !overdue.length) { const empty = document.createElement('p'); empty.className = 'planner-empty'; empty.textContent = 'No missions here yet. Add one, or tell AURA what’s on your mind.'; container.append(empty); }
+    if (!daily.length && !overdue.length) { const empty = document.createElement('p'); empty.className = 'planner-empty'; empty.textContent = 'No missions here yet. Add one, or tell ZUNO what’s on your mind.'; container.append(empty); }
     for (const item of [...overdue, ...daily]) {
       const row = document.createElement('div'); row.className = 'planner-task' + (item.completed ? ' done' : '');
       const check = document.createElement('input'); check.type = 'checkbox'; check.checked = item.completed; check.setAttribute('aria-label', 'Complete ' + item.title); check.onchange = () => update(item, check.checked, check);

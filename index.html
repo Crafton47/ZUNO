@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AURA — Your AI command center</title>
-  <meta name="description" content="AURA is a voice-first AI productivity companion for real plans, focused missions, and earned rewards.">
+  <title>ZUNO — Your AI command center</title>
+  <meta name="description" content="ZUNO is a voice-first AI productivity companion for real plans, focused missions, and earned rewards.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/companion.css">
+  <link rel="stylesheet" href="/assets/companion.css"><link rel="stylesheet" href="/assets/playcore.css"><link rel="icon" type="image/jpeg" href="/assets/brand/zuno-logo.jpeg"><script src="/assets/playcore.js" defer></script>
   <script src="/assets/mood.js" defer></script>
   <script src="/assets/companion.js" defer></script>
   <script src="/assets/scheduler.js" defer></script>
 </head>
 <body>
   <aside class="sidebar">
-    <a class="brand" href="/chat" aria-label="AURA home">
-      <span class="brand-icon" aria-hidden="true">A</span>
-      <span class="brand-word">AURA</span>
+    <a class="brand" href="/chat" aria-label="ZUNO home">
+      <img class="brand-logo" src="/assets/brand/zuno-logo.jpeg" alt="ZUNO logo" width="64" height="64">
+      <span class="brand-word">ZUNO</span>
       <span class="brand-version">2.0</span>
     </a>
-    <span class="eyebrow sidebar-eyebrow">AI WORKSPACE</span>
+    <span class="eyebrow sidebar-eyebrow">PLAYCORE 2.0</span>
     <nav aria-label="Workspace navigation">
-      <button class="nav-item selected" id="conversation-tab" aria-label="Command center" title="Command center">
+      <button class="nav-item selected" id="conversation-tab" aria-label="Your playground" title="Command center">
         <span class="nav-icon" aria-hidden="true">◈</span><span>Command center</span>
       </button>
       <a class="nav-item" href="#daily-planner" aria-label="Missions and planner" title="Missions and planner">
@@ -34,18 +34,18 @@
       <button class="nav-item" id="context-open" aria-label="About you" title="About you">
         <span class="nav-icon" aria-hidden="true">◇</span><span>About you</span>
       </button>
-    </nav>
+    <button class="nav-item" id="study-nav" type="button"><span class="nav-icon" aria-hidden="true">&#9998;</span><span>Study Studio</span></button></nav>
     <div class="sidebar-note">
       <span class="note-kicker">MOMENTUM MODE</span>
       <strong>One small win<br>still counts.</strong>
-      <p>AURA keeps the plan while you keep moving.</p>
+      <p>ZUNO keeps the plan while you keep moving.</p>
       <div class="tiny-orbit" aria-hidden="true"><i></i></div>
     </div>
     <div class="account">
       <span class="avatar" id="initial">Y</span>
       <div class="account-copy">
         <strong id="username">Your space</strong>
-        <small>AURA member</small>
+        <small>ZUNO member</small>
       </div>
       <button id="logout" aria-label="Log out" title="Log out">↗</button>
     </div>
@@ -53,41 +53,37 @@
 
   <main>
     <header>
-      <div class="header-title"><span class="breadcrumb">AURA //</span> Command center</div>
-      <div class="header-meta">
+      <div class="header-title"><span class="breadcrumb">ZUNO //</span> Command center</div>
+      <div class="header-meta"><button id="mode-toggle" type="button" aria-pressed="false">Focus mode</button>
         <span class="header-date" id="header-date"></span>
         <span class="presence" id="provider-state" aria-live="polite">Connecting…</span>
       </div>
     </header>
 
     <div class="workspace">
-      <section class="conversation" aria-label="AURA command center">
+      <section class="conversation" aria-label="ZUNO command center">
         <div class="intro">
           <div class="hero-copy">
-            <span class="eyebrow">AURA // PERSONAL AI</span>
+            <span class="eyebrow">ZUNO // PERSONAL AI</span>
             <h1>Ready to <span class="hero-accent">lock in?</span><span class="hero-spark" aria-hidden="true">✳</span></h1>
             <p id="greeting">Your goals. Your pace. Your AI companion.</p>
             <div class="hero-actions">
-              <button class="hero-primary" id="hero-talk" type="button">Talk to AURA <span aria-hidden="true">↗</span></button>
+              <button class="hero-primary" id="hero-talk" type="button">Talk to ZUNO <span aria-hidden="true">↗</span></button>
               <button class="hero-secondary" id="hero-plan" type="button">Plan my day</button>
             </div>
-            <div class="intro-pills" aria-label="AURA features">
+            <div class="intro-pills" aria-label="ZUNO features">
               <span><i class="pill-dot dot-violet" aria-hidden="true"></i>Voice-first</span>
               <span><i class="pill-dot dot-cyan" aria-hidden="true"></i>Planner-synced</span>
               <span><i class="pill-dot dot-lime" aria-hidden="true"></i>Rewards on completion</span>
             </div>
           </div>
-          <div class="hero-visual" aria-hidden="true">
-            <div class="hero-grid"></div>
-            <span class="hero-coord hero-coord-top">SIGNAL 04</span>
-            <span class="hero-coord hero-coord-bottom">AURA CORE / ONLINE</span>
-            <div class="hero-orb"><span class="hero-orb-core">A</span></div>
-            <div class="hero-ring hero-ring-one"></div>
-            <div class="hero-ring hero-ring-two"></div>
+          <div class="hero-visual zuno-mascot" data-mascot-state="idle" aria-label="ZUNO companion">
+            <img class="mascot-art" src="/assets/brand/zuno-logo.jpeg" alt="ZUNO, your AI companion"><span class="mascot-badge" data-mascot-label>Here for your next idea</span>
           </div>
         </div>
 
-        <section class="pulse" aria-labelledby="pulse-title">
+        <button class="study-entry" id="study-entry" type="button"><span class="study-entry-icon">&#9998;</span><span><small>YOUR NOTES. BIG IDEAS.</small><strong>Study Studio</strong><span>Turn course material into understanding. Powered by Open Notebook.</span></span><b aria-hidden="true">&#8599;</b></button>
+<section class="pulse" aria-labelledby="pulse-title">
           <div class="section-heading pulse-heading">
             <div>
               <span class="eyebrow">LIVE SIGNAL</span>
@@ -133,7 +129,7 @@
             </div>
             <span id="planner-count" class="planner-count">0 / 0 done</span>
           </div>
-          <p class="planner-intro">Tell AURA what needs to happen. Type it, say it, or add it here — it lands in your plan.</p>
+          <p class="planner-intro">Tell ZUNO what needs to happen. Type it, say it, or add it here — it lands in your plan.</p>
           <div class="planner-toolbar">
             <label>Day <input type="date" id="planner-day"></label>
             <button type="button" id="planner-today">Today</button>
@@ -153,13 +149,13 @@
             <button id="planner-notifications" type="button">Enable reminders</button>
             <button id="planner-export" type="button">Export calendar</button>
           </div>
-          <p class="planner-help">Evening check-in at 8 pm. Tasks without a time are due at 9 pm (or midnight if it is already later). Reminders run while AURA is open and catch up when you return. Calendar export includes a 15-minute alarm for each deadline.</p>
+          <p class="planner-help">Evening check-in at 8 pm. Tasks without a time are due at 9 pm (or midnight if it is already later). Reminders run while ZUNO is open and catch up when you return. Calendar export includes a 15-minute alarm for each deadline.</p>
         </section>
 
         <section class="mood-studio" id="mood-studio" aria-labelledby="mood-title">
           <div class="mood-heading">
             <div>
-              <span class="eyebrow">VIBE CHECK</span>
+              <span class="eyebrow">DAILY MIX</span>
               <h2 id="mood-title">What’s your mood today?</h2>
             </div>
             <span class="mix-sticker">curated for this moment ↗</span>
@@ -180,7 +176,7 @@
           </div>
           <div id="mood-picks" class="mood-picks"></div>
           <div class="mix-footer">
-            <span>Curated starting points · tell AURA your taste to make them yours.</span>
+            <span>Curated starting points · tell ZUNO your taste to make them yours.</span>
             <button id="personalize-mix" type="button">Let’s make it personal ↗</button>
           </div>
         </section>
@@ -201,9 +197,9 @@
         <div class="thread" id="thread" role="log" aria-label="Conversation" aria-live="polite"></div>
         <div id="notice" class="notice" role="status" hidden></div>
         <form id="chat-form" class="composer">
-          <label class="sr-only" for="message">Message AURA</label>
+          <label class="sr-only" for="message">Message ZUNO</label>
           <div class="composer-field">
-            <textarea id="message" maxlength="4000" rows="1" placeholder="Ask AURA anything…"></textarea>
+            <textarea id="message" maxlength="4000" rows="1" placeholder="Ask ZUNO anything…"></textarea>
             <span class="composer-hint">Enter to send · Shift + Enter for a new line</span>
           </div>
           <div class="composer-actions">
@@ -214,14 +210,14 @@
           </div>
         </form>
         <div class="composer-footer">
-          <span>AURA is AI. A little perspective, always your choice.</span>
+          <span>ZUNO is AI. A little perspective, always your choice.</span>
           <button id="clear">Clear conversation</button>
         </div>
       </section>
 
       <aside class="call-card" id="companion" aria-labelledby="voice-title">
         <div class="card-top">
-          <span class="eyebrow">AURA LIVE</span>
+          <span class="eyebrow">ZUNO LIVE</span>
           <span class="live-pill">VOICE</span>
         </div>
         <div class="orb-scene" id="orb-scene" aria-hidden="true">
@@ -232,11 +228,11 @@
           <div class="voice-wave"><span></span><span></span><span></span><span></span><span></span></div>
           <div class="orb-shadow"></div>
         </div>
-        <h2 id="voice-title">Say it out loud. <br><span>AURA is listening.</span></h2>
+        <h2 id="voice-title">Say it out loud. <br><span>Ready when you are.</span></h2>
         <p>Skip the typing. Talk naturally,<br>and take the conversation as it comes.</p>
         <div class="call-status" id="call-status" role="status">Your next conversation starts here</div>
         <div class="voice-select">
-          <label for="voice">AURA’s voice</label>
+          <label for="voice">ZUNO’s voice</label>
           <select id="voice">
             <option value="Aoede">Aoede · Breezy</option>
             <option value="Kore">Kore · Firm</option>
@@ -250,7 +246,7 @@
           <button id="hangup">End call</button>
         </div>
         <div class="caption" id="caption" aria-live="polite"></div>
-        <p class="privacy">Microphone on only during calls.<br>Voice is processed by Google; chat uses the configured AI provider. Text transcripts are saved to your account; AURA does not save recordings.</p>
+        <p class="privacy">Microphone on only during calls.<br>Voice is processed by Google; chat uses the configured AI provider. Text transcripts are saved to your account; ZUNO does not save recordings.</p>
         <div class="card-bottom">
           <span>✧ Natural conversation</span>
           <span>↔ Interrupt anytime</span>
@@ -268,8 +264,8 @@
     <form id="context-form">
       <button type="button" id="context-close" class="close" aria-label="Close">×</button>
       <span class="eyebrow">THE LITTLE THINGS THAT MATTER</span>
-      <h2 id="context-title">Let AURA get to know you.</h2>
-      <p>Share your interests, routines, or what you're working toward. You choose what AURA remembers. This context is sent to your configured chat provider and to Google during voice calls.</p>
+      <h2 id="context-title">Let ZUNO get to know you.</h2>
+      <p>Share your interests, routines, or what you're working toward. You choose what ZUNO remembers. This context is sent to your configured chat provider and to Google during voice calls.</p>
       <label for="notes">Your personal context</label>
       <textarea id="notes" maxlength="2000" rows="7" placeholder="I love indie music, prefer vegetarian meals, and I'm trying to make more time for evening walks…"></textarea>
       <small>Up to 2,000 characters. Clear this field and save to forget it.</small>
@@ -296,20 +292,20 @@
   <dialog id="reward-dialog" class="reward-dialog" aria-labelledby="reward-heading">
     <div class="reward-glow" aria-hidden="true"></div>
     <button type="button" class="close" id="reward-close" aria-label="Close reward">×</button>
-    <span class="eyebrow">AURA REWARD</span>
+    <span class="eyebrow">ZUNO REWARD</span>
     <h2 id="reward-heading">Mission complete. <span>Reward unlocked.</span></h2>
     <p id="reward-for"></p>
     <button id="reward-reveal" class="primary">Reveal my movie</button>
     <div id="reward-result" hidden>
       <div class="reward-ticket">
         <div class="ticket-body">
-          <div class="ticket-meta"><span>AURA CINEMA</span><span>ADMIT ONE</span></div>
+          <div class="ticket-meta"><span>ZUNO CINEMA</span><span>ADMIT ONE</span></div>
           <span class="ticket-kicker">YOUR NEXT WATCH</span>
           <h3 id="reward-title"></h3>
           <p>Something to look forward to when you feel like a break.</p>
           <a id="reward-link" target="_blank" rel="noopener noreferrer">Find the trailer ↗</a>
         </div>
-        <div class="ticket-stub" aria-hidden="true"><span>✳</span><small>AURA</small></div>
+        <div class="ticket-stub" aria-hidden="true"><span>✳</span><small>ZUNO</small></div>
       </div>
       <p class="reward-footnote">One mission down. The break is earned.</p>
     </div>
