@@ -1,0 +1,318 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AURA — Your AI command center</title>
+  <meta name="description" content="AURA is a voice-first AI productivity companion for real plans, focused missions, and earned rewards.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/companion.css">
+  <script src="/assets/mood.js" defer></script>
+  <script src="/assets/companion.js" defer></script>
+  <script src="/assets/scheduler.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/chat" aria-label="AURA home">
+      <span class="brand-icon" aria-hidden="true">A</span>
+      <span class="brand-word">AURA</span>
+      <span class="brand-version">2.0</span>
+    </a>
+    <span class="eyebrow sidebar-eyebrow">AI WORKSPACE</span>
+    <nav aria-label="Workspace navigation">
+      <button class="nav-item selected" id="conversation-tab" aria-label="Command center" title="Command center">
+        <span class="nav-icon" aria-hidden="true">◈</span><span>Command center</span>
+      </button>
+      <a class="nav-item" href="#daily-planner" aria-label="Missions and planner" title="Missions and planner">
+        <span class="nav-icon" aria-hidden="true">◎</span><span>Missions</span>
+      </a>
+      <a class="nav-item" href="#mood-studio" aria-label="Vibe check" title="Vibe check">
+        <span class="nav-icon" aria-hidden="true">✦</span><span>Vibe check</span>
+      </a>
+      <button class="nav-item" id="context-open" aria-label="About you" title="About you">
+        <span class="nav-icon" aria-hidden="true">◇</span><span>About you</span>
+      </button>
+    </nav>
+    <div class="sidebar-note">
+      <span class="note-kicker">MOMENTUM MODE</span>
+      <strong>One small win<br>still counts.</strong>
+      <p>AURA keeps the plan while you keep moving.</p>
+      <div class="tiny-orbit" aria-hidden="true"><i></i></div>
+    </div>
+    <div class="account">
+      <span class="avatar" id="initial">Y</span>
+      <div class="account-copy">
+        <strong id="username">Your space</strong>
+        <small>AURA member</small>
+      </div>
+      <button id="logout" aria-label="Log out" title="Log out">↗</button>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div class="header-title"><span class="breadcrumb">AURA //</span> Command center</div>
+      <div class="header-meta">
+        <span class="header-date" id="header-date"></span>
+        <span class="presence" id="provider-state" aria-live="polite">Connecting…</span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <section class="conversation" aria-label="AURA command center">
+        <div class="intro">
+          <div class="hero-copy">
+            <span class="eyebrow">AURA // PERSONAL AI</span>
+            <h1>Ready to <span class="hero-accent">lock in?</span><span class="hero-spark" aria-hidden="true">✳</span></h1>
+            <p id="greeting">Your goals. Your pace. Your AI companion.</p>
+            <div class="hero-actions">
+              <button class="hero-primary" id="hero-talk" type="button">Talk to AURA <span aria-hidden="true">↗</span></button>
+              <button class="hero-secondary" id="hero-plan" type="button">Plan my day</button>
+            </div>
+            <div class="intro-pills" aria-label="AURA features">
+              <span><i class="pill-dot dot-violet" aria-hidden="true"></i>Voice-first</span>
+              <span><i class="pill-dot dot-cyan" aria-hidden="true"></i>Planner-synced</span>
+              <span><i class="pill-dot dot-lime" aria-hidden="true"></i>Rewards on completion</span>
+            </div>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="hero-grid"></div>
+            <span class="hero-coord hero-coord-top">SIGNAL 04</span>
+            <span class="hero-coord hero-coord-bottom">AURA CORE / ONLINE</span>
+            <div class="hero-orb"><span class="hero-orb-core">A</span></div>
+            <div class="hero-ring hero-ring-one"></div>
+            <div class="hero-ring hero-ring-two"></div>
+          </div>
+        </div>
+
+        <section class="pulse" aria-labelledby="pulse-title">
+          <div class="section-heading pulse-heading">
+            <div>
+              <span class="eyebrow">LIVE SIGNAL</span>
+              <h2 id="pulse-title">Your momentum</h2>
+            </div>
+            <span class="pulse-range">Today · <span id="pulse-date"></span></span>
+          </div>
+          <div class="pulse-grid">
+            <article class="pulse-card pulse-today">
+              <div class="stat-top"><span class="stat-icon" aria-hidden="true">◉</span><span>Today’s missions</span></div>
+              <strong class="stat-value" id="stat-today-value">—</strong>
+              <small class="stat-note" id="stat-today-note">Syncing your plan…</small>
+            </article>
+            <article class="pulse-card pulse-done">
+              <div class="stat-top"><span class="stat-icon" aria-hidden="true">✓</span><span>Completed</span></div>
+              <strong class="stat-value" id="stat-done-value">—</strong>
+              <small class="stat-note" id="stat-done-note">Missions banked</small>
+            </article>
+            <article class="pulse-card pulse-streak">
+              <div class="stat-top"><span class="stat-icon" aria-hidden="true">✦</span><span>Streak</span></div>
+              <strong class="stat-value" id="stat-streak-value">—</strong>
+              <small class="stat-note" id="stat-streak-note">Consecutive days</small>
+            </article>
+            <article class="pulse-card pulse-next">
+              <div class="stat-top"><span class="stat-icon" aria-hidden="true">◷</span><span>Next deadline</span></div>
+              <strong class="stat-value is-text" id="stat-next-value">—</strong>
+              <small class="stat-note" id="stat-next-note">Nothing queued</small>
+            </article>
+            <article class="pulse-card pulse-progress">
+              <div class="stat-top"><span class="stat-icon" aria-hidden="true">↗</span><span>Overall progress</span></div>
+              <strong class="stat-value" id="stat-progress-value">—</strong>
+              <small class="stat-note" id="stat-progress-note">Start with one mission</small>
+              <div class="stat-meter" aria-hidden="true"><span class="stat-fill" id="stat-progress-fill"></span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="planner" id="daily-planner" aria-labelledby="planner-title">
+          <div class="planner-heading">
+            <div>
+              <span class="eyebrow">MISSION CONTROL</span>
+              <h2 id="planner-title">Today’s missions</h2>
+            </div>
+            <span id="planner-count" class="planner-count">0 / 0 done</span>
+          </div>
+          <p class="planner-intro">Tell AURA what needs to happen. Type it, say it, or add it here — it lands in your plan.</p>
+          <div class="planner-toolbar">
+            <label>Day <input type="date" id="planner-day"></label>
+            <button type="button" id="planner-today">Today</button>
+            <button type="button" id="planner-year-toggle" aria-expanded="false">Year view</button>
+            <button type="button" id="planner-add">+ Add mission</button>
+          </div>
+          <progress id="planner-progress" max="1" value="0" aria-label="Daily task progress"></progress>
+          <div id="planner-reminders" role="status" aria-live="polite"></div>
+          <div id="planner-error" role="status"></div>
+          <div id="planner-tasks" aria-label="Daily tasks"></div>
+          <div id="planner-year" hidden>
+            <label>Year <input type="number" id="planner-year-input" min="2020" max="2100"></label>
+            <div id="planner-months"></div>
+          </div>
+          <div class="planner-actions">
+            <button id="planner-focus" type="button">♫ Focus playlist</button>
+            <button id="planner-notifications" type="button">Enable reminders</button>
+            <button id="planner-export" type="button">Export calendar</button>
+          </div>
+          <p class="planner-help">Evening check-in at 8 pm. Tasks without a time are due at 9 pm (or midnight if it is already later). Reminders run while AURA is open and catch up when you return. Calendar export includes a 15-minute alarm for each deadline.</p>
+        </section>
+
+        <section class="mood-studio" id="mood-studio" aria-labelledby="mood-title">
+          <div class="mood-heading">
+            <div>
+              <span class="eyebrow">VIBE CHECK</span>
+              <h2 id="mood-title">What’s your mood today?</h2>
+            </div>
+            <span class="mix-sticker">curated for this moment ↗</span>
+          </div>
+          <div class="mood-chips" role="group" aria-label="Choose your mood">
+            <button data-mood="happy" aria-pressed="false">☀ On a high</button>
+            <button data-mood="sad" aria-pressed="false">☁ Feeling low</button>
+            <button data-mood="stressed" aria-pressed="false">〰 Overwhelmed</button>
+            <button data-mood="chill" aria-pressed="true">☾ Just chilling</button>
+            <button data-mood="energetic" aria-pressed="false">ϟ Need energy</button>
+            <button data-mood="focus" aria-pressed="false">◎ Locked in</button>
+            <button data-mood="bored" aria-pressed="false">✳ Bored</button>
+            <button data-mood="romantic" aria-pressed="false">♡ In my feels</button>
+          </div>
+          <div class="mix-summary">
+            <p id="mood-summary" role="status">A softer soundtrack and a little escape.</p>
+            <button id="shuffle-mix" type="button">↻ Remix picks</button>
+          </div>
+          <div id="mood-picks" class="mood-picks"></div>
+          <div class="mix-footer">
+            <span>Curated starting points · tell AURA your taste to make them yours.</span>
+            <button id="personalize-mix" type="button">Let’s make it personal ↗</button>
+          </div>
+        </section>
+
+        <div class="suggestions" id="suggestions">
+          <button data-prompt="Can we do a gentle check-in about my day?">
+            <span class="suggestion-icon" aria-hidden="true">☀</span>
+            <span class="suggestion-copy">Check in with me<small>A moment to reset</small></span>
+            <span class="suggestion-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button data-prompt="Help me make a realistic plan for the rest of my day.">
+            <span class="suggestion-icon" aria-hidden="true">✧</span>
+            <span class="suggestion-copy">Find my next step<small>One thing at a time</small></span>
+            <span class="suggestion-arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+
+        <div class="thread" id="thread" role="log" aria-label="Conversation" aria-live="polite"></div>
+        <div id="notice" class="notice" role="status" hidden></div>
+        <form id="chat-form" class="composer">
+          <label class="sr-only" for="message">Message AURA</label>
+          <div class="composer-field">
+            <textarea id="message" maxlength="4000" rows="1" placeholder="Ask AURA anything…"></textarea>
+            <span class="composer-hint">Enter to send · Shift + Enter for a new line</span>
+          </div>
+          <div class="composer-actions">
+            <button type="button" class="composer-mic" id="composer-mic" aria-label="Start a voice call" title="Start a voice call">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 9a1 1 0 0 1 2 0 3 3 0 0 0 6 0 1 1 0 1 1 2 0 5 5 0 0 1-4 4.9V19h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.1A5 5 0 0 1 7 12Z"/></svg>
+            </button>
+            <button type="submit" id="send" aria-label="Send message">↑</button>
+          </div>
+        </form>
+        <div class="composer-footer">
+          <span>AURA is AI. A little perspective, always your choice.</span>
+          <button id="clear">Clear conversation</button>
+        </div>
+      </section>
+
+      <aside class="call-card" id="companion" aria-labelledby="voice-title">
+        <div class="card-top">
+          <span class="eyebrow">AURA LIVE</span>
+          <span class="live-pill">VOICE</span>
+        </div>
+        <div class="orb-scene" id="orb-scene" aria-hidden="true">
+          <div class="orb-halo"></div>
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="orb"><span>✳</span></div>
+          <div class="voice-wave"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="orb-shadow"></div>
+        </div>
+        <h2 id="voice-title">Say it out loud. <br><span>AURA is listening.</span></h2>
+        <p>Skip the typing. Talk naturally,<br>and take the conversation as it comes.</p>
+        <div class="call-status" id="call-status" role="status">Your next conversation starts here</div>
+        <div class="voice-select">
+          <label for="voice">AURA’s voice</label>
+          <select id="voice">
+            <option value="Aoede">Aoede · Breezy</option>
+            <option value="Kore">Kore · Firm</option>
+            <option value="Puck">Puck · Upbeat</option>
+            <option value="Charon">Charon · Informative</option>
+          </select>
+        </div>
+        <button class="primary" id="call">Start a voice call</button>
+        <div class="call-controls" id="call-controls" hidden>
+          <button id="mute" aria-pressed="false">Mute mic</button>
+          <button id="hangup">End call</button>
+        </div>
+        <div class="caption" id="caption" aria-live="polite"></div>
+        <p class="privacy">Microphone on only during calls.<br>Voice is processed by Google; chat uses the configured AI provider. Text transcripts are saved to your account; AURA does not save recordings.</p>
+        <div class="card-bottom">
+          <span>✧ Natural conversation</span>
+          <span>↔ Interrupt anytime</span>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      <span>LESS NOISE. MORE MOMENTUM.</span>
+      <span>Built for your pace ✳</span>
+    </footer>
+  </main>
+
+  <dialog id="context-dialog" aria-labelledby="context-title">
+    <form id="context-form">
+      <button type="button" id="context-close" class="close" aria-label="Close">×</button>
+      <span class="eyebrow">THE LITTLE THINGS THAT MATTER</span>
+      <h2 id="context-title">Let AURA get to know you.</h2>
+      <p>Share your interests, routines, or what you're working toward. You choose what AURA remembers. This context is sent to your configured chat provider and to Google during voice calls.</p>
+      <label for="notes">Your personal context</label>
+      <textarea id="notes" maxlength="2000" rows="7" placeholder="I love indie music, prefer vegetarian meals, and I'm trying to make more time for evening walks…"></textarea>
+      <small>Up to 2,000 characters. Clear this field and save to forget it.</small>
+      <button class="primary" type="submit">Save personal context</button>
+      <p id="context-status" role="status"></p>
+    </form>
+  </dialog>
+
+  <dialog id="task-dialog" aria-labelledby="task-dialog-title">
+    <form id="task-form">
+      <button type="button" class="close" id="task-close" aria-label="Close task editor">×</button>
+      <span class="eyebrow">MISSION SETUP</span>
+      <h2 id="task-dialog-title">Add a mission</h2>
+      <label for="task-title">What do you want to do?</label>
+      <input id="task-title" maxlength="300" required placeholder="Finish my assignment">
+      <label for="task-due">Deadline (your local time)</label>
+      <input id="task-due" type="datetime-local" required>
+      <p id="task-zone"></p>
+      <button type="submit" class="primary">Save mission</button>
+      <p id="task-error" role="status"></p>
+    </form>
+  </dialog>
+
+  <dialog id="reward-dialog" class="reward-dialog" aria-labelledby="reward-heading">
+    <div class="reward-glow" aria-hidden="true"></div>
+    <button type="button" class="close" id="reward-close" aria-label="Close reward">×</button>
+    <span class="eyebrow">AURA REWARD</span>
+    <h2 id="reward-heading">Mission complete. <span>Reward unlocked.</span></h2>
+    <p id="reward-for"></p>
+    <button id="reward-reveal" class="primary">Reveal my movie</button>
+    <div id="reward-result" hidden>
+      <div class="reward-ticket">
+        <div class="ticket-body">
+          <div class="ticket-meta"><span>AURA CINEMA</span><span>ADMIT ONE</span></div>
+          <span class="ticket-kicker">YOUR NEXT WATCH</span>
+          <h3 id="reward-title"></h3>
+          <p>Something to look forward to when you feel like a break.</p>
+          <a id="reward-link" target="_blank" rel="noopener noreferrer">Find the trailer ↗</a>
+        </div>
+        <div class="ticket-stub" aria-hidden="true"><span>✳</span><small>AURA</small></div>
+      </div>
+      <p class="reward-footnote">One mission down. The break is earned.</p>
+    </div>
+  </dialog>
+</body>
+</html>

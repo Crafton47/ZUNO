@@ -1,0 +1,255 @@
+'use strict';
+const $ = id => document.getElementById(id);
+let configured = false, busy = false, call = null;
+const token = localStorage.getItem('vibe_token');
+if (!token) location.replace('/login.html');
+function notice(message) { $('notice').textContent = message; $('notice').hidden = !message; }
+async function api(path = '', options = {}) {
+  const response = await fetch('/api/companion' + path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(120000) });
+  if (response.status === 401 || response.status === 403) { location.replace('/login.html'); throw new Error('Please log in again.'); }
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Something went wrong. Please retry.');
+  return data;
+}
+function message(role, text) {
+  const el = document.createElement('div'); el.className = 'message ' + role;
+  const label = document.createElement('small'); label.textContent = role === 'user' ? 'You' : 'AURA';
+  const body = document.createElement('span'); body.textContent = text;
+  el.append(label, body); $('thread').append(el); $('thread').scrollTop = $('thread').scrollHeight;
+  $('suggestions').hidden = true; return el;
+}
+function typing() {
+  const el = document.createElement('div'); el.className = 'typing-indicator'; el.id = 'typing-indicator'; el.setAttribute('aria-label', 'AURA is thinking');
+  const label = document.createElement('small'); label.textContent = 'AURA';
+  const dots = document.createElement('span'); dots.className = 'typing-dots'; dots.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 3; i++) dots.append(document.createElement('i'));
+  el.append(label, dots); $('thread').append(el); $('thread').scrollTop = $('thread').scrollHeight; return el;
+}
+function renderHistory(messages) { $('thread').replaceChildren(); $('suggestions').hidden = messages.length > 0; messages.forEach(m => message(m.role, m.text)); }
+function lock() {
+  $('send').disabled = busy || !!call; $('message').disabled = !!call;
+  $('call').disabled = busy || !!call; $('voice').disabled = !!call;
+  $('clear').disabled = busy || !!call; $('composer-mic').disabled = busy || !!call;
+}
+const clock = new Date();
+$('header-date').textContent = clock.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+$('pulse-date').textContent = clock.toLocaleDateString([], { month: 'short', day: 'numeric' });
+$('hero-talk').onclick = () => { $('message').focus({ preventScroll: true }); $('chat-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+$('hero-plan').onclick = () => $('daily-planner').scrollIntoView({ behavior: 'smooth', block: 'start' });
+$('composer-mic').onclick = () => {
+  if (busy || call) return;
+  $('call').click();
+  if (configured) $('companion').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+async function initialize() {
+  try {
+    const response = await fetch('/api/me', { headers: { Authorization: 'Bearer ' + token } });
+    if (!response.ok) { location.replace('/login.html'); return; }
+    const { user } = await response.json();
+    $('username').textContent = user.username; $('initial').textContent = user.username[0].toUpperCase();
+    $('greeting').textContent = `Hey ${user.username} — your goals. Your pace. Your AI companion.`;
+    const data = await api(); configured = data.configured;
+    $('notes').value = data.notes; renderHistory(data.messages);
+    $('provider-state').textContent = configured ? 'Ready when you are' : 'AI setup needed';
+    if (!configured) notice(data.chatConfigured ? 'AI chat is ready. Add GEMINI_API_KEY to .env and restart to enable voice calls.' : 'Add GEMINI_API_KEY or NVIDIA_API_KEY to .env and restart to enable AI. Offline ideas remain available.');
+    $('message').placeholder = data.chatProvider === 'nvidia' ? 'Ask AURA anything… · NVIDIA chat' : 'Ask AURA anything…';
+  } catch (error) { notice('Unable to load your space. Check your connection and refresh.'); }
+}
+$('chat-form').addEventListener('submit', async event => {
+  event.preventDefault(); const text = $('message').value.trim();
+  if (!text || busy || call) return;
+  window.dispatchEvent(new CustomEvent('vibe-user-message', { detail: text }));
+  busy = true; lock(); notice('');
+  const pending = message('user', text); $('message').value = '';
+  const indicator = typing();
+  $('provider-state').textContent = 'AURA is thinking…';
+  try { const data = await api('/chat', { method: 'POST', body: JSON.stringify({ text, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) }); indicator.remove(); message('model', data.text); }
+  catch (error) { pending.remove(); indicator.remove(); $('message').value = text; notice(error.message); }
+  finally { indicator.remove(); window.dispatchEvent(new Event('vibe-tasks-changed')); busy = false; lock(); $('provider-state').textContent = configured ? 'Ready when you are' : 'AI setup needed'; }
+});
+$('message').addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); $('chat-form').requestSubmit(); } });
+document.querySelectorAll('[data-prompt]').forEach(button => button.addEventListener('click', () => { $('message').value = button.dataset.prompt; $('chat-form').requestSubmit(); }));
+$('clear').addEventListener('click', async () => { try { await api('/history', { method: 'DELETE' }); renderHistory([]); notice('Conversation cleared. Your saved personal context is unchanged.'); } catch (error) { notice(error.message); } });
+$('context-open').onclick = () => $('context-dialog').showModal();
+$('context-close').onclick = () => $('context-dialog').close();
+$('conversation-tab').onclick = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  $('message').focus();
+  document.querySelectorAll('nav .nav-item').forEach(el => el.classList.remove('selected'));
+  $('conversation-tab').classList.add('selected');
+};
+document.querySelectorAll('nav a.nav-item').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('nav .nav-item').forEach(el => el.classList.remove('selected'));
+    link.classList.add('selected');
+  });
+});
+window.addEventListener('scroll', () => {
+  const plannerTop = $('daily-planner')?.getBoundingClientRect().top ?? 9999;
+  const moodTop = $('mood-studio')?.getBoundingClientRect().top ?? 9999;
+  const navItems = document.querySelectorAll('nav .nav-item');
+  if (moodTop <= 220) {
+    navItems.forEach(el => el.classList.remove('selected'));
+    document.querySelector('nav a[href="#mood-studio"]')?.classList.add('selected');
+  } else if (plannerTop <= 220) {
+    navItems.forEach(el => el.classList.remove('selected'));
+    document.querySelector('nav a[href="#daily-planner"]')?.classList.add('selected');
+  } else if (window.scrollY < 200) {
+    navItems.forEach(el => el.classList.remove('selected'));
+    $('conversation-tab')?.classList.add('selected');
+  }
+}, { passive: true });
+$('context-form').onsubmit = async event => {
+  event.preventDefault(); const button = event.submitter; button.disabled = true;
+  try { await api('/profile', { method: 'PUT', body: JSON.stringify({ notes: $('notes').value }) }); $('context-status').textContent = 'Saved. This will apply to your next message or new call.'; }
+  catch (error) { $('context-status').textContent = error.message; }
+  finally { button.disabled = false; }
+};
+function stopAudio(c) { for (const source of c.sources) { try { source.stop(); } catch {} } c.sources.clear(); c.next = 0; }
+function playAudio(c, base64) {
+  const bytes = Uint8Array.from(atob(base64), ch => ch.charCodeAt(0));
+  const view = new DataView(bytes.buffer); const buffer = c.audio.createBuffer(1, bytes.length / 2, 24000);
+  const floats = buffer.getChannelData(0); for (let i = 0; i < floats.length; i++) floats[i] = view.getInt16(i * 2, true) / 32768;
+  const source = c.audio.createBufferSource(); source.buffer = buffer; source.connect(c.audio.destination);
+  c.next = Math.max(c.audio.currentTime + .03, c.next); source.start(c.next); c.next += buffer.duration; c.sources.add(source);
+  $('orb-scene').classList.add('speaking');
+  source.onended = () => { c.sources.delete(source); if (!c.sources.size && call === c) $('orb-scene').classList.remove('speaking'); };
+}
+function finishCall(reason = 'Call ended. Take a little calm with you.') {
+  const c = call; if (!c) return; call = null;
+  clearInterval(c.timer); clearTimeout(c.timeout); c.stream?.getTracks().forEach(track => track.stop());
+  c.capture?.disconnect(); c.mic?.disconnect(); stopAudio(c); c.audio?.close().catch(() => {});
+  if (c.socket && c.socket.readyState < 2) c.socket.close();
+  $('call').hidden = false; $('call').textContent = '↗  Start a voice call'; $('call-controls').hidden = true;
+  $('mute').textContent = 'Mute mic'; $('mute').setAttribute('aria-pressed', 'false');
+  $('call-status').textContent = reason; $('orb-scene').classList.remove('active', 'speaking', 'connecting', 'muted'); lock();
+  // The server stores completed turns and flushes the final transcript on close.
+  if (c.ready) setTimeout(() => { if (!call && !busy) api().then(data => { if (!call && !busy) renderHistory(data.messages); }).catch(() => {}); }, 500);
+}
+$('call').onclick = async () => {
+  if (call || busy) return;
+  if (!configured) { notice('Add GEMINI_API_KEY to the server .env file and restart before starting a call.'); return; }
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) { notice('Voice calls need a current browser on localhost or HTTPS with microphone support.'); return; }
+  const c = { sources: new Set(), next: 0, muted: false, ready: false, captions: {} }; call = c; lock(); notice('');
+  $('call').hidden = true; $('call-controls').hidden = false; $('mute').disabled = true; $('caption').textContent = '';
+  $('orb-scene').classList.remove('active', 'speaking', 'muted'); $('orb-scene').classList.add('connecting');
+  $('call-status').textContent = 'Allow microphone access to connect…';
+  c.timeout = setTimeout(() => { if (call === c) finishCall('Connection timed out. Please try again.'); }, 30000);
+  try {
+    c.audio = new AudioContext(); await c.audio.resume();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    if (call !== c) { stream.getTracks().forEach(t => t.stop()); return; } c.stream = stream;
+    await c.audio.audioWorklet.addModule('/assets/audio-worklet.js');
+    if (call !== c) return;
+    const { ticket } = await api('/call', { method: 'POST', body: JSON.stringify({ voice: $('voice').value, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) });
+    if (call !== c) return;
+    $('call-status').textContent = 'Connecting to AURA…';
+    c.socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/companion/live?ticket=${encodeURIComponent(ticket)}`);
+    c.socket.onmessage = event => {
+      if (call !== c) return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'ready') {
+          c.ready = true; clearTimeout(c.timeout); c.start = Date.now(); $('mute').disabled = false;
+          $('orb-scene').classList.remove('connecting', 'muted'); $('orb-scene').classList.add('active');
+          c.timer = setInterval(() => { const sec = Math.floor((Date.now() - c.start) / 1000); $('call-status').textContent = `${c.muted ? 'Microphone muted' : 'Connected · Talk naturally'} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; }, 1000);
+          $('call-status').textContent = 'Connected · Say hello';
+          c.mic = c.audio.createMediaStreamSource(c.stream); c.capture = new AudioWorkletNode(c.audio, 'vibe-capture');
+          c.capture.port.onmessage = ({ data: buffer }) => {
+            if (call !== c || c.muted || c.socket.readyState !== WebSocket.OPEN) return;
+            if (c.socket.bufferedAmount > 128000) { finishCall('Your connection is too slow for live audio. Please retry.'); return; }
+            const bytes = new Uint8Array(buffer); let raw = ''; for (const byte of bytes) raw += String.fromCharCode(byte);
+            c.socket.send(JSON.stringify({ type: 'audio', data: btoa(raw) }));
+          };
+          c.mic.connect(c.capture); c.capture.connect(c.audio.destination);
+        } else if (data.type === 'audio') playAudio(c, data.data);
+        else if (data.type === 'interrupted') { stopAudio(c); c.captions = {}; $('orb-scene').classList.remove('speaking'); }
+        else if (data.type === 'caption') { c.captions[data.role] = ((c.captions[data.role] || '') + data.text).slice(-2000); $('caption').textContent = (data.role === 'user' ? 'You: ' : 'AURA: ') + c.captions[data.role]; }
+        else if (data.type === 'turnComplete') { if (c.captions.user) window.dispatchEvent(new CustomEvent('vibe-user-message', { detail: c.captions.user })); c.captions = {}; }
+        else if (data.type === 'tasksChanged') window.dispatchEvent(new Event('vibe-tasks-changed'));
+        else if (data.type === 'error') finishCall(data.message);
+      } catch { finishCall('Audio could not be played. Please reconnect.'); }
+    };
+    c.socket.onerror = () => { if (call === c) finishCall('Voice connection failed. Check your connection and retry.'); };
+    c.socket.onclose = () => { if (call === c) finishCall('Connection ended. Start another call to continue.'); };
+  } catch (error) {
+    if (call === c) finishCall(error.name === 'NotAllowedError' ? 'Microphone permission was denied. Allow it in your browser and try again.' : error.name === 'NotFoundError' ? 'No microphone found. Connect one and try again.' : error.message);
+  }
+};
+$('mute').onclick = () => {
+  const c = call; if (!c?.ready) return; c.muted = !c.muted;
+  c.stream.getAudioTracks().forEach(track => { track.enabled = !c.muted; });
+  if (c.muted && c.socket.readyState === WebSocket.OPEN) c.socket.send(JSON.stringify({ type: 'mute' }));
+  $('orb-scene').classList.toggle('muted', c.muted);
+  $('mute').textContent = c.muted ? 'Unmute mic' : 'Mute mic'; $('mute').setAttribute('aria-pressed', String(c.muted));
+};
+$('hangup').onclick = () => finishCall();
+$('logout').onclick = () => { finishCall(); localStorage.removeItem('vibe_token'); localStorage.removeItem('vibe_user'); location.replace('/login.html'); };
+window.addEventListener('pagehide', () => finishCall());
+initialize();
+
+/* Integrated mood mix: curated picks, with tentative keyword cues the user can override. */
+(() => {
+  const catalog = window.vibeCatalog;
+  const moods = {
+    happy: { music: 'happy', movie: 'comedy', activity: 2, food: 'dessert', line: 'Keep the good feeling going. Here’s your little victory lap.' },
+    sad: { music: 'chill', movie: 'animated', activity: 1, food: 'hungry', line: 'No pressure to cheer up. A soft landing, at your pace.' },
+    stressed: { music: 'focus', movie: 'animated', activity: 8, food: 'snack', line: 'Less noise, more breathing room. Start with something gentle.' },
+    chill: { music: 'chill', movie: 'comedy', activity: 3, food: 'snack', line: 'A softer soundtrack and a little escape.' },
+    energetic: { music: 'energetic', movie: 'action', activity: 2, food: 'hungry', line: 'Turn the volume up. Give that energy somewhere to go.' },
+    focus: { music: 'focus', movie: 'scifi', activity: 5, food: 'snack', line: 'A soundtrack for now. A movie for your well-earned break.' },
+    bored: { music: 'happy', movie: 'scifi', activity: 6, food: 'dessert', line: 'Plot twist: your day still has a few good surprises.' },
+    romantic: { music: 'romantic', movie: 'romance', activity: 9, food: 'dessert', line: 'For the main-character montage playing in your head.' }
+  };
+  let selected = 'chill', offset = 0;
+  const pick = (list, index = offset) => list[index % list.length];
+  function card(kind, title, description, action, href, symbol) {
+    const article = document.createElement('article'); article.className = 'pick-card pick-' + kind;
+    const art = document.createElement('div'); art.className = 'pick-art'; art.setAttribute('aria-hidden', 'true'); art.textContent = symbol;
+    const label = document.createElement('span'); label.className = 'eyebrow'; label.textContent = kind === 'music' ? 'YOUR SOUNDTRACK' : kind === 'movie' ? 'TONIGHT’S WATCH' : kind === 'food' ? 'A LITTLE COMFORT' : 'OFFLINE MOMENT';
+    const h = document.createElement('h3'); h.textContent = title;
+    const p = document.createElement('p'); p.textContent = description;
+    const a = document.createElement(href ? 'a' : 'button'); a.textContent = action + ' ↗';
+    if (href) { a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.setAttribute('aria-label', action + ': ' + title + ' (opens a new tab)'); }
+    else a.onclick = () => ask(`I’m feeling ${selected}. Help me try this: ${title}. Keep it simple and ask about any preferences first.`);
+    article.append(art, label, h, p, a); return article;
+  }
+  function render(inferred = false) {
+    const mood = moods[selected];
+    document.querySelectorAll('[data-mood]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mood === selected)));
+    $('mood-summary').textContent = (inferred ? `Sounds like ${selected} might fit — change it if I’m off. ` : '') + mood.line;
+    const music = pick(catalog.MUSIC[mood.music].playlists), movie = pick(catalog.MOVIES[mood.movie]);
+    const food = pick(catalog.FOOD[mood.food]), activity = pick(catalog.ACTIVITIES, mood.activity + offset);
+    $('mood-picks').replaceChildren(
+      card('music', music.name, music.meta, 'Find on Spotify', 'https://open.spotify.com/search/' + encodeURIComponent(music.name), '♫'),
+      card('movie', movie.title, `${movie.year} · ${movie.tags.join(' / ')}. Search for a trailer before you pick.`, 'Find trailer', 'https://www.youtube.com/results?search_query=' + encodeURIComponent(movie.title + ' official trailer'), '▶'),
+      card('activity', activity.name, activity.meta, 'Try this', null, '✳'),
+      card('food', food.name, 'A starting idea. Tell Vibe about allergies or dietary preferences before planning a meal.', 'Make it my way', null, '◒')
+    );
+  }
+  function ask(text) {
+    if (busy || call) { notice('Finish the current reply or call, then we can make your mix personal.'); return; }
+    $('message').value = text; $('chat-form').requestSubmit(); $('thread').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  document.querySelectorAll('[data-mood]').forEach(button => button.onclick = () => { selected = button.dataset.mood; offset = 0; render(); });
+  $('shuffle-mix').onclick = () => { offset++; render(); };
+  $('personalize-mix').onclick = () => {
+    const mood = moods[selected];
+    ask(`I’m feeling ${selected}. My mood mix suggests ${pick(catalog.MUSIC[mood.music].playlists).name} and ${pick(catalog.MOVIES[mood.movie]).title}. Help me find music or a movie that fits my mood. Ask one question about my taste first, then explain why your suggestions fit.`);
+  };
+  function infer(text) {
+    // Only explicit first-person cues, not claims to diagnose emotion from arbitrary text.
+    const patterns = [
+      ['stressed', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really |a bit )?(?:stressed|anxious|overwhelmed|burnt out)\b/i],
+      ['sad', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really |a bit )?(?:sad|lonely|down|low|heartbroken)\b/i],
+      ['happy', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really )?(?:happy|excited|great|amazing)\b/i],
+      ['bored', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really )?bored\b/i],
+      ['focus', /\b(?:i need to|help me|i want to)\s+(?:focus|study|concentrate)\b/i],
+      ['chill', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really )?(?:tired|chill|relaxed)\b/i]
+    ];
+    const match = patterns.find(([, pattern]) => pattern.test(text));
+    if (match) { selected = match[0]; offset = 0; render(true); }
+  }
+  window.addEventListener('vibe-user-message', event => infer(event.detail));
+  render();
+})();
