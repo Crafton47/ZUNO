@@ -110,14 +110,14 @@ function playAudio(c, base64) {
   const bytes = Uint8Array.from(atob(base64), ch => ch.charCodeAt(0));
   const view = new DataView(bytes.buffer); const buffer = c.audio.createBuffer(1, bytes.length / 2, 24000);
   const floats = buffer.getChannelData(0); for (let i = 0; i < floats.length; i++) floats[i] = view.getInt16(i * 2, true) / 32768;
-  const source = c.audio.createBufferSource(); source.buffer = buffer; source.connect(c.audio.destination);
+  const source = c.audio.createBufferSource(); source.buffer = buffer; source.connect(c.outputAnalyser);
   c.next = Math.max(c.audio.currentTime + .03, c.next); source.start(c.next); c.next += buffer.duration; c.sources.add(source);
   $('orb-scene').classList.add('speaking'); window.ZunoMascot?.set('voice', 'speaking');
   source.onended = () => { c.sources.delete(source); if (!c.sources.size && call === c) { $('orb-scene').classList.remove('speaking'); window.ZunoMascot?.set('voice', c.muted ? 'idle' : 'listening'); } };
 }
 function finishCall(reason = 'Call ended. Take a little calm with you.') {
   const c = call; if (!c) return; call = null; window.ZunoMascot?.clear('voice');
-  clearInterval(c.timer); clearTimeout(c.timeout); c.stream?.getTracks().forEach(track => track.stop());
+  clearInterval(c.timer); clearTimeout(c.timeout); cancelAnimationFrame(c.visualFrame); window.ZunoMascot?.level('speech', 0); window.ZunoMascot?.level('mic', 0); c.stream?.getTracks().forEach(track => track.stop());
   c.capture?.disconnect(); c.mic?.disconnect(); stopAudio(c); c.audio?.close().catch(() => {});
   if (c.socket && c.socket.readyState < 2) c.socket.close();
   $('call').hidden = false; $('call').textContent = '↗  Start a voice call'; $('call-controls').hidden = true;
@@ -128,15 +128,27 @@ function finishCall(reason = 'Call ended. Take a little calm with you.') {
 }
 $('call').onclick = async () => {
   if (call || busy) return;
+  window.ZunoMascot?.clear('voice-error');
   if (!configured) { notice('Add GEMINI_API_KEY to the server .env file and restart before starting a call.'); return; }
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) { notice('Voice calls need a current browser on localhost or HTTPS with microphone support.'); return; }
   const c = { sources: new Set(), next: 0, muted: false, ready: false, captions: {} }; call = c; lock(); notice('');
   $('call').hidden = true; $('call-controls').hidden = false; $('mute').disabled = true; $('caption').textContent = '';
   $('orb-scene').classList.remove('active', 'speaking', 'muted'); $('orb-scene').classList.add('connecting');
   $('call-status').textContent = 'Allow microphone access to connect…';
-  c.timeout = setTimeout(() => { if (call === c) finishCall('Connection timed out. Please try again.'); }, 30000);
+  function voiceError(reason) { if (call === c) { finishCall(reason); window.ZunoMascot?.set('voice-error', 'error', 4500); } }
+  c.timeout = setTimeout(() => voiceError('Connection timed out. Please try again.'), 30000);
   try {
     c.audio = new AudioContext(); await c.audio.resume();
+    c.outputAnalyser = c.audio.createAnalyser(); c.outputAnalyser.fftSize = 256; c.outputAnalyser.connect(c.audio.destination);
+    const waveform = new Float32Array(256);
+    function animateSpeech() {
+      if (call !== c) return;
+      c.outputAnalyser.getFloatTimeDomainData(waveform);
+      const rms = Math.sqrt(waveform.reduce((sum, value) => sum + value * value, 0) / waveform.length);
+      window.ZunoMascot?.level('speech', Math.min(1, rms * 6));
+      c.visualFrame = requestAnimationFrame(animateSpeech);
+    }
+    animateSpeech();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     if (call !== c) { stream.getTracks().forEach(t => t.stop()); return; } c.stream = stream;
     await c.audio.audioWorklet.addModule('/assets/audio-worklet.js');
@@ -157,28 +169,32 @@ $('call').onclick = async () => {
           c.mic = c.audio.createMediaStreamSource(c.stream); c.capture = new AudioWorkletNode(c.audio, 'vibe-capture');
           c.capture.port.onmessage = ({ data: buffer }) => {
             if (call !== c || c.muted || c.socket.readyState !== WebSocket.OPEN) return;
-            if (c.socket.bufferedAmount > 128000) { finishCall('Your connection is too slow for live audio. Please retry.'); return; }
+            if (c.socket.bufferedAmount > 128000) { voiceError('Your connection is too slow for live audio. Please retry.'); return; }
+            const samples = new Int16Array(buffer); let energy = 0; for (const value of samples) energy += (value / 32768) ** 2;
+            window.ZunoMascot?.level('mic', Math.sqrt(energy / samples.length) * 7);
             const bytes = new Uint8Array(buffer); let raw = ''; for (const byte of bytes) raw += String.fromCharCode(byte);
             c.socket.send(JSON.stringify({ type: 'audio', data: btoa(raw) }));
           };
           c.mic.connect(c.capture); c.capture.connect(c.audio.destination); window.ZunoMascot?.set('voice', 'listening');
         } else if (data.type === 'audio') playAudio(c, data.data);
         else if (data.type === 'interrupted') { stopAudio(c); window.ZunoMascot?.set('voice', c.muted ? 'idle' : 'listening'); c.captions = {}; $('orb-scene').classList.remove('speaking'); }
-        else if (data.type === 'caption') { c.captions[data.role] = ((c.captions[data.role] || '') + data.text).slice(-2000); $('caption').textContent = (data.role === 'user' ? 'You: ' : 'ZUNO: ') + c.captions[data.role]; }
-        else if (data.type === 'turnComplete') { if (c.captions.user) window.dispatchEvent(new CustomEvent('vibe-user-message', { detail: c.captions.user })); c.captions = {}; }
+        else if (data.type === 'processing') { if (!c.sources.size) window.ZunoMascot?.set('voice', 'thinking'); }
+        else if (data.type === 'caption') { if (data.role === 'model' && !c.sources.size) window.ZunoMascot?.set('voice', 'thinking'); c.captions[data.role] = ((c.captions[data.role] || '') + data.text).slice(-2000); $('caption').textContent = (data.role === 'user' ? 'You: ' : 'ZUNO: ') + c.captions[data.role]; }
+        else if (data.type === 'turnComplete') { if (!c.sources.size) window.ZunoMascot?.set('voice', c.muted ? 'idle' : 'listening'); if (c.captions.user) window.dispatchEvent(new CustomEvent('vibe-user-message', { detail: c.captions.user })); c.captions = {}; }
         else if (data.type === 'tasksChanged') window.dispatchEvent(new Event('vibe-tasks-changed'));
         else if (data.type === 'error') { finishCall(data.message); window.ZunoMascot?.set('voice-error', 'error', 4500); }
-      } catch { finishCall('Audio could not be played. Please reconnect.'); }
+      } catch { voiceError('Audio could not be played. Please reconnect.'); }
     };
-    c.socket.onerror = () => { if (call === c) finishCall('Voice connection failed. Check your connection and retry.'); };
-    c.socket.onclose = () => { if (call === c) finishCall('Connection ended. Start another call to continue.'); };
+    c.socket.onerror = () => voiceError('Voice connection failed. Check your connection and retry.');
+    c.socket.onclose = () => voiceError('Connection ended. Start another call to continue.');
   } catch (error) {
-    if (call === c) finishCall(error.name === 'NotAllowedError' ? 'Microphone permission was denied. Allow it in your browser and try again.' : error.name === 'NotFoundError' ? 'No microphone found. Connect one and try again.' : error.message);
+    voiceError(error.name === 'NotAllowedError' ? 'Microphone permission was denied. Allow it in your browser and try again.' : error.name === 'NotFoundError' ? 'No microphone found. Connect one and try again.' : error.message);
   }
 };
 $('mute').onclick = () => {
   const c = call; if (!c?.ready) return; c.muted = !c.muted; window.ZunoMascot?.set('voice', c.sources.size ? 'speaking' : c.muted ? 'idle' : 'listening');
   c.stream.getAudioTracks().forEach(track => { track.enabled = !c.muted; });
+  if (c.muted) window.ZunoMascot?.level('mic', 0);
   if (c.muted && c.socket.readyState === WebSocket.OPEN) c.socket.send(JSON.stringify({ type: 'mute' }));
   $('orb-scene').classList.toggle('muted', c.muted);
   $('mute').textContent = c.muted ? 'Unmute mic' : 'Mute mic'; $('mute').setAttribute('aria-pressed', String(c.muted));

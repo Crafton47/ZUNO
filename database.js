@@ -53,6 +53,7 @@ async function init() {
     CREATE TABLE IF NOT EXISTS schedule_reminders (user_id INTEGER NOT NULL, reminder_id TEXT NOT NULL, PRIMARY KEY(user_id, reminder_id));`);
   saveToDisk();
 
+  require('./study').init();
   return db;
 }
 

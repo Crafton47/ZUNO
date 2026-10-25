@@ -65,12 +65,20 @@ test('isolated API, account boundaries and browser call lifecycle', { timeout: 1
     await context.addInitScript(value => localStorage.setItem('vibe_token', value), a);
     const page = await context.newPage(); const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '/chat'); await page.waitForFunction(() => document.getElementById('provider-state').textContent === 'Ready when you are');
+    assert.equal(await page.locator('.zuno-character').count(), 2);
+    assert.equal(await page.locator('#orb-scene .character-eyes').isVisible(), true);
+    assert.equal(await page.locator('.hero-visual img').count(), 0);
+    assert.equal(await page.locator('#orb-scene').getAttribute('data-mascot-state'), 'idle');
+    assert.equal(await page.locator('#orb-scene .character-eyes').evaluate(el => getComputedStyle(el).animationName), 'zuno-blink');
+    await page.evaluate(() => { window.mascotStates = []; new MutationObserver(() => window.mascotStates.push(document.documentElement.dataset.mascotState)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-mascot-state'] }); });
     await page.locator('#planner-add').click();
     await page.locator('#task-title').fill('Browser task');
     await page.locator('#task-form button[type="submit"]').click();
     await page.waitForFunction(() => document.getElementById('planner-tasks').textContent.includes('Browser task'));
     await page.getByRole('checkbox', { name: 'Complete Browser task', exact: true }).check();
+    await page.waitForFunction(() => document.documentElement.dataset.mascotState === 'task-completed');
     await page.locator('#reward-reveal').click();
+    assert.equal(await page.locator('#orb-scene').getAttribute('data-mascot-state'), 'excited');
     assert.ok(await page.locator('#reward-title').textContent());
     await page.locator('#reward-close').click();
     await page.locator('#planner-year-toggle').click();
@@ -99,6 +107,9 @@ test('isolated API, account boundaries and browser call lifecycle', { timeout: 1
     await page.waitForFunction(() => document.getElementById('planner-tasks').textContent.includes('Voice test task'));
     await page.locator('#mute').click(); assert.equal(await page.locator('#mute').getAttribute('aria-pressed'), 'true');
     await page.locator('#hangup').click(); assert.equal(await page.evaluate(() => call === null), true);
+    await page.waitForFunction(() => document.documentElement.dataset.mascotState === 'idle');
+    const states = await page.evaluate(() => window.mascotStates);
+    for (const state of ['thinking', 'listening', 'speaking', 'task-completed', 'excited']) assert.ok(states.includes(state), 'Missing real event state: ' + state);
     assert.equal(await page.evaluate(() => window.testStream.getTracks().every(track => track.readyState === 'ended')), true);
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
@@ -108,6 +119,9 @@ test('isolated API, account boundaries and browser call lifecycle', { timeout: 1
     // Permission denial must return the controls to a retryable state.
     await page.evaluate(() => { navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('Denied', 'NotAllowedError'); }; });
     await page.locator('#call').click(); await page.waitForFunction(() => document.getElementById('call-status').textContent.includes('permission was denied'));
+    assert.equal(await page.locator('#orb-scene').getAttribute('data-mascot-state'), 'error');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await page.locator('#orb-scene .character-eyes').evaluate(el => getComputedStyle(el).animationName), 'none');
     assert.equal(await page.locator('#call').isEnabled(), true);
     assert.deepEqual(errors, []);
     await request('/api/companion/history', 'DELETE', undefined, a);

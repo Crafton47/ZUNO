@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/companion.css"><link rel="stylesheet" href="/assets/playcore.css"><link rel="icon" type="image/jpeg" href="/assets/brand/zuno-logo.jpeg"><script src="/assets/playcore.js" defer></script>
+  <link rel="stylesheet" href="/assets/mascot.css"><script src="/assets/mascot.js" defer></script>
   <script src="/assets/mood.js" defer></script>
   <script src="/assets/companion.js" defer></script>
   <script src="/assets/scheduler.js" defer></script>
@@ -78,7 +79,7 @@
             </div>
           </div>
           <div class="hero-visual zuno-mascot" data-mascot-state="idle" aria-label="ZUNO companion">
-            <img class="mascot-art" src="/assets/brand/zuno-logo.jpeg" alt="ZUNO, your AI companion"><span class="mascot-badge" data-mascot-label>Here for your next idea</span>
+            <div data-zuno-character></div><span class="mascot-badge" data-mascot-label>Here for your next idea</span>
           </div>
         </div>
 
@@ -220,13 +221,8 @@
           <span class="eyebrow">ZUNO LIVE</span>
           <span class="live-pill">VOICE</span>
         </div>
-        <div class="orb-scene" id="orb-scene" aria-hidden="true">
-          <div class="orb-halo"></div>
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="orb"><span>✳</span></div>
-          <div class="voice-wave"><span></span><span></span><span></span><span></span><span></span></div>
-          <div class="orb-shadow"></div>
+        <div class="orb-scene zuno-mascot" id="orb-scene" data-mascot-state="idle">
+          <div data-zuno-character></div>
         </div>
         <h2 id="voice-title">Say it out loud. <br><span>Ready when you are.</span></h2>
         <p>Skip the typing. Talk naturally,<br>and take the conversation as it comes.</p>

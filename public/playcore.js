@@ -9,7 +9,7 @@
     document.querySelectorAll('[data-mascot-label]').forEach(el => { el.textContent = labels[state]; });
     document.documentElement.dataset.mascotState = state;
   }
-  window.ZunoMascot = { set(channel, state, duration = 0) {
+  window.ZunoMascot = { level(kind, value) { document.querySelectorAll('.zuno-mascot').forEach(el => el.style.setProperty(kind === 'speech' ? '--speech-level' : '--mic-level', String(Math.max(0, Math.min(1, value))))); }, reset() { for (const item of channels.values()) clearTimeout(item.timer); channels.clear(); render(); }, set(channel, state, duration = 0) {
     if (!(state in labels)) return;
     clearTimeout(channels.get(channel)?.timer);
     const entry = { state }; channels.set(channel, entry);
@@ -26,5 +26,8 @@
   document.getElementById('mode-toggle').onclick = () => mode(document.documentElement.dataset.mode !== 'focus');
   window.addEventListener('vibe-user-message', event => { if (/\b(sad|overwhelmed|lonely|anxious)\b/i.test(event.detail)) window.ZunoMascot.set('mood', 'comforting', 6000); });
   window.addEventListener('zuno-task-completed', () => window.ZunoMascot.set('reward', 'task-completed', 5000));
+  window.addEventListener('zuno-reward-revealed', () => window.ZunoMascot.set('reward', 'excited', 3000));
+  window.addEventListener('pagehide', () => window.ZunoMascot.reset());
   render();
+  for (const id of ['study-nav', 'study-entry']) document.getElementById(id).onclick = () => { location.href = '/study'; };
 })();

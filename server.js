@@ -23,6 +23,7 @@ for (const page of ['login.html', 'register.html', 'index.html']) {
   app.get('/' + page, (req, res) => res.sendFile(path.join(__dirname, page)));
 }
 app.get('/ideas', (req, res) => res.sendFile(path.join(__dirname, 'legacy.html')));
+app.get('/study', (req, res) => res.sendFile(path.join(__dirname, 'study.html')));
 
 // ── JWT Verification Middleware ────────────────────────────────
 function requireAuth(req, res, next) {

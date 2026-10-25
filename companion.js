@@ -42,6 +42,7 @@ function attachCompanion(app, server, requireAuth) {
   });
   app.get('/api/companion', (req, res) => res.json({ configured: configured(), chatConfigured: chatProvider.configured(), chatProvider: chatProvider.provider(), voices, notes: db.profile(req.user.id), messages: db.history(req.user.id) }));
   scheduler.attach(app);
+  require('./study').attach(app);
   app.put('/api/companion/profile', (req, res) => {
     if (typeof req.body.notes !== 'string' || req.body.notes.length > 2000) return res.status(400).json({ error: 'Personal context must be at most 2,000 characters.' });
     db.saveProfile(req.user.id, req.body.notes.trim());
@@ -144,6 +145,7 @@ function attachCompanion(app, server, requireAuth) {
         onmessage(message) {
           if (ended) return;
           if (message.toolCall?.functionCalls?.length && session) {
+            send({ type: 'processing' });
             const functionResponses = message.toolCall.functionCalls.slice(0, 10).map(fc => ({
               id: fc.id, name: fc.name,
               response: scheduler.runTool(user.id, fc.name, fc.args || {}, timezone, actionPrefix + ':' + fc.id)
@@ -152,6 +154,7 @@ function attachCompanion(app, server, requireAuth) {
             send({ type: 'tasksChanged' });
           }
           const content = message.serverContent;
+          if (content?.inputTranscription?.finished) send({ type: 'processing' });
           if (content?.interrupted) { send({ type: 'interrupted' }); flush(); }
           if (content?.inputTranscription?.text) { input += content.inputTranscription.text; send({ type: 'caption', role: 'user', text: content.inputTranscription.text }); }
           if (content?.outputTranscription?.text) { output += content.outputTranscription.text; send({ type: 'caption', role: 'model', text: content.outputTranscription.text }); }

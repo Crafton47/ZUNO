@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "node --test tests/companion.test.cjs"
+    "test": "node --test tests/companion.test.cjs tests/study.test.cjs",
+    "study:setup": "node scripts/setup-study.cjs",
+    "study:model": "node scripts/configure-study-model.cjs",
+    "test:study:live": "node tests/study-live.cjs"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",

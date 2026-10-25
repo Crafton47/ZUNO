@@ -87,7 +87,10 @@ function calendar(tasks) {
   return lines.map(line => { const folded = []; let part = ''; for (const c of line) { if (Buffer.byteLength(part + c) > 73) { folded.push(part); part = ' '; } part += c; } folded.push(part); return folded.join('\r\n'); }).join('\r\n') + '\r\n';
 }
 function attach(app) {
-  app.get('/api/companion/tasks', (req, res) => res.json({ tasks: list(req.user.id) }));
+  app.get('/api/companion/tasks', (req, res) => {
+    const links = db.rows('SELECT l.task_id,l.notebook_id FROM study_tasks l JOIN study_notebooks n ON l.notebook_id=n.id WHERE l.user_id=? AND n.user_id=?', [req.user.id, req.user.id]);
+    res.json({ tasks: list(req.user.id).map(t => ({ ...t, notebook_id: links.find(l => l.task_id === t.id)?.notebook_id || null })) });
+  });
   app.post('/api/companion/tasks', (req, res) => {
     try { const result = db.transaction(() => add(req.user.id, req.body.tasks, req.body.timezone)); res.status(201).json({ tasks: result }); }
     catch (error) { res.status(400).json({ error: error.message }); }

@@ -1,4 +1,10 @@
-# AURA 2.0 — Futuristic Gen Z AI Workspace
+# ZUNO PLAYCORE 2.0
+
+The existing dashboard now includes a native Open Notebook Study Studio and an expressive SVG companion. See [repair, setup, security and verification report](docs/PLAYCORE-REPAIR.md) for current instructions. Study Studio is restricted to one configured local account; it is not a public multi-user deployment.
+
+Quick local study setup: `npm run study:setup`, then `docker compose -f deploy/compose.yml --env-file deploy/.env up -d`, then `npm run study:model`. Start ZUNO with `npm start`. Preserve your existing `.env` and database.
+
+The earlier AURA documentation below describes the preserved companion/planner features.
 
 [![Node.js](https://img.shields.io/badge/Node.js-20.19+-green.svg)](https://nodejs.org/)
 [![AI Provider](https://img.shields.io/badge/AI-Gemini%20Live%20%7C%20NVIDIA-blueviolet.svg)](https://ai.google.dev/)

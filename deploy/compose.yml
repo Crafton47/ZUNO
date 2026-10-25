@@ -1,0 +1,41 @@
+name: zuno-study
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:v2.3.10@sha256:e3322f21b3135dd4893e6487874481333b03bc731d7da200d716a8564b4f0a92
+    command: [start, --user, root, --pass, '${SURREAL_PASSWORD:?Run setup-study first}', 'rocksdb:/mydata/study.db']
+    user: root
+    volumes: [study-database:/mydata]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, /surreal, is-ready, --endpoint, 'http://localhost:8000']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  notebook:
+    image: lfnovo/open_notebook:1.15.0@sha256:54b2025a4a4853c188f74b9b8246eca8c5480e5dd1babfa92db1038ff2f30212
+    ports: ['127.0.0.1:5055:5055']
+    environment:
+      OPEN_NOTEBOOK_PASSWORD: '${OPEN_NOTEBOOK_PASSWORD:?Run setup-study first}'
+      OPEN_NOTEBOOK_ENCRYPTION_KEY: '${OPEN_NOTEBOOK_ENCRYPTION_KEY:?Run setup-study first}'
+      SURREAL_URL: ws://surrealdb:8000/rpc
+      SURREAL_USER: root
+      SURREAL_PASSWORD: '${SURREAL_PASSWORD}'
+      SURREAL_NAMESPACE: zuno_study
+      SURREAL_DATABASE: zuno_study
+      OPENAI_COMPATIBLE_BASE_URL: https://integrate.api.nvidia.com/v1
+      OPENAI_COMPATIBLE_API_KEY: '${NVIDIA_API_KEY:-}'
+      GOOGLE_API_KEY: '${GEMINI_API_KEY:-}'
+      OPEN_NOTEBOOK_WORKER_MAX_TASKS: '2'
+    volumes: [study-files:/app/data]
+    depends_on:
+      surrealdb: {condition: service_healthy}
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:5055/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 45s
+volumes:
+  study-database:
+  study-files:

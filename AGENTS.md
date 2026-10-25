@@ -1,4 +1,12 @@
-# AGENTS.md — AURA 2.0 Project Context & Architecture Guide
+# AGENTS.md — ZUNO PLAYCORE Project Context & Architecture Guide
+
+## Current repair additions
+
+Read `docs/PLAYCORE-REPAIR.md` for Study Studio architecture, API contract, setup and security boundaries. `study.js` is mounted behind the existing companion authentication middleware; `study.html` is the native `/study` frontend. Open Notebook 1.15.0 and SurrealDB 2.3.10 run in isolated digest-pinned Docker services (`deploy/compose.yml`). Access is limited to `STUDY_OWNER_ID` and all notebooks/material are ownership-checked. Do not enable public multi-user use or expose the service password to browsers.
+
+`database.js` adds `study_notebooks`, `study_items`, `study_tasks`, `study_messages`; existing tasks actually live in `schedule_tasks` (the legacy schema description below is outdated). `public/playcore.js` controls mascot channels; `public/mascot.js`/`.css` render the vector interpretation of the original logo. `public/companion.js` supplies actual audio levels and call events.
+
+Run `npm test`. Opt-in `npm run test:study:live` uses the running service and real provider, with temporary ZUNO accounts/database. Never commit `.env`, `deploy/.env`, databases or runtime logs. Keep existing dashboard IDs and features.
 
 > **For AI Agents:** Read this file first to understand the application architecture, schemas, API contracts, design system, and operational guidelines without needing to parse the entire codebase.
 
