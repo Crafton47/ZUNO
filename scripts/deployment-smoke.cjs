@@ -47,8 +47,10 @@ async function main() {
     assert.equal((await request('/api/companion/radio/playlists/' + radio.data.playlist.id, 'PATCH', { label: 'Updated test label' })).status, 200);
     console.log('PASS Radio playlist read/write');
     assert.equal((await request('/api/companion/study/status')).data.available, false);
-    assert.equal((await request('/api/companion/call', 'POST', {})).status, 503);
-    console.log('PASS explicit cloud voice/Study limitations');
+    const callRes = await request('/api/companion/call', 'POST', { timezone: 'Asia/Kolkata', voice: 'Aoede' });
+    assert.equal(callRes.status, 200);
+    assert.ok(callRes.data.ticket);
+    console.log('PASS Live voice ticket endpoint');
     const chat = await request('/api/companion/chat', 'POST', { text: 'Reply with one short friendly sentence. Do not create tasks.', timezone: 'Asia/Kolkata' });
     assert.equal(chat.status, 200, 'Real AI chat HTTP status'); assert.ok(typeof chat.data.text === 'string' && chat.data.text.length > 0);
     console.log('PASS real AI text response');

@@ -2,13 +2,19 @@ const { GoogleGenAI } = require('@google/genai');
 const { WebSocketServer, WebSocket } = require('ws');
 const { DateTime } = require('luxon');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const db = require('./database');
 const chatProvider = require('./chat-provider');
 const scheduler = require('./scheduler');
 
 const liveModel = () => process.env.GEMINI_LIVE_MODEL || 'gemini-2.5-flash-native-audio-preview-12-2025';
 const client = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const configured = () => !process.env.VERCEL && Boolean(process.env.GEMINI_API_KEY);
+const configured = () => Boolean(process.env.GEMINI_API_KEY);
+const signingSecret = () => {
+  const envSecret = process.env.JWT_SECRET;
+  if (typeof envSecret === 'string' && envSecret.trim().length >= 32) return envSecret.trim();
+  return 'vibe_development_jwt_secret_change_in_production_min32';
+};
 const voices = ['Aoede', 'Kore', 'Puck', 'Charon'];
 function instruction(user, timezone, profileNotes = '') {
   return `You are ZUNO, a friendly, playful, intelligent student AI companion. Use gentle wit, stay emotionally considerate, and speak naturally in English, Hindi, or Hinglish to match the user. Encourage without pressure or guilt. Be honest that you are AI.
@@ -104,7 +110,6 @@ function attachCompanion(app, server, requireAuth) {
     res.json({ success: true });
   });
   function available(req, res, next) {
-    if (process.env.VERCEL && req.path.endsWith('/call')) return res.status(503).json({ error: 'Live voice needs a persistent WebSocket service, which this Vercel deployment does not provide. Text chat remains available.' });
     if (req.path.endsWith('/chat') ? !chatProvider.configured() : !configured()) return res.status(503).json({ error: 'Configure GEMINI_API_KEY for voice, or NVIDIA_API_KEY / GEMINI_API_KEY for your selected chat provider in .env, then restart npm start.' });
     const now = Date.now();
     const bucket = attempts.get(req.user.id) || { count: 0, until: now + 60000 };
@@ -162,8 +167,14 @@ Critical recovery: the user asked to add a task but no add_tasks call saved anyt
   app.post('/api/companion/call', available, (req, res) => {
     if (active.has(req.user.id) || chats.has(req.user.id)) return res.status(409).json({ error: 'A call or reply is already active.' });
     for (const [key, value] of tickets) if (value.user.id === req.user.id) tickets.delete(key);
-    const ticket = crypto.randomBytes(32).toString('hex');
-    tickets.set(ticket, { user: req.user, timezone: scheduler.zone(req.body.timezone), voice: voices.includes(req.body.voice) ? req.body.voice : voices[0], expires: Date.now() + 30000 });
+    const timezone = scheduler.zone(req.body.timezone);
+    const voice = voices.includes(req.body.voice) ? req.body.voice : voices[0];
+    const ticket = jwt.sign(
+      { sub: req.user.id, user: req.user, timezone, voice, type: 'live_voice' },
+      signingSecret(),
+      { expiresIn: '60s' }
+    );
+    tickets.set(ticket, { user: req.user, timezone, voice, expires: Date.now() + 60000 });
     res.json({ ticket });
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 65536 });
@@ -171,18 +182,34 @@ Critical recovery: the user asked to add a task but no add_tasks call saved anyt
     const url = new URL(req.url, 'http://localhost');
     let sameOrigin = false;
     try {
-      const originHost = new URL(req.headers.origin).host;
-      const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-      sameOrigin = originHost === req.headers.host ||
-        originHost === 'zuno.runs-on.dev' ||
-        originHost.endsWith('.runs-on.dev') ||
-        originHost.endsWith('.vercel.app') ||
-        allowed.includes(originHost);
+      if (!req.headers.origin) {
+        sameOrigin = true;
+      } else {
+        const originHost = new URL(req.headers.origin).host;
+        const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+        sameOrigin = originHost === req.headers.host ||
+          originHost === 'zuno.runs-on.dev' ||
+          originHost.endsWith('.runs-on.dev') ||
+          originHost.endsWith('.vercel.app') ||
+          allowed.includes(originHost);
+      }
     } catch {}
     const ticket = url.searchParams.get('ticket');
-    const entry = tickets.get(ticket);
-    tickets.delete(ticket);
-    if (url.pathname !== '/api/companion/live' || !sameOrigin || !entry || entry.expires < Date.now() || active.has(entry.user.id) || chats.has(entry.user.id)) {
+    let entry = null;
+    if (ticket) {
+      try {
+        const decoded = jwt.verify(ticket, signingSecret());
+        if (decoded && decoded.user) {
+          entry = { user: decoded.user, timezone: decoded.timezone, voice: decoded.voice, expires: Date.now() + 60000 };
+        }
+      } catch {}
+    }
+    if (!entry && ticket && tickets.has(ticket)) {
+      entry = tickets.get(ticket);
+      tickets.delete(ticket);
+    }
+    const isLivePath = url.pathname === '/api/companion/live' || url.pathname.endsWith('/live') || (url.pathname.startsWith('/api') && Boolean(entry));
+    if (!isLivePath || !sameOrigin || !entry || (entry.expires && entry.expires < Date.now()) || active.has(entry.user.id) || chats.has(entry.user.id)) {
       socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n'); socket.destroy(); return;
     }
     active.add(entry.user.id);
@@ -242,12 +269,21 @@ Critical recovery: the user asked to add a task but no add_tasks call saved anyt
           try {
             if (message.toolCall?.functionCalls?.length && session) {
               send({ type: 'processing' });
-              const functionResponses = message.toolCall.functionCalls.slice(0, 10).map(fc => ({
-                id: fc.id, name: fc.name,
-                response: scheduler.runTool(user.id, fc.name, fc.args || {}, timezone, actionPrefix + ':' + fc.id)
-              }));
-              session.sendToolResponse({ functionResponses });
-              send({ type: 'tasksChanged' });
+              (async () => {
+                try {
+                  const functionResponses = await Promise.all(
+                    message.toolCall.functionCalls.slice(0, 10).map(async fc => ({
+                      id: fc.id,
+                      name: fc.name,
+                      response: await scheduler.runTool(user.id, fc.name, fc.args || {}, timezone, actionPrefix + ':' + fc.id)
+                    }))
+                  );
+                  session.sendToolResponse({ functionResponses });
+                  send({ type: 'tasksChanged' });
+                } catch (e) {
+                  console.error('[VOICE TOOL ERROR]', e);
+                }
+              })();
             }
             const content = message.serverContent;
             if (content?.inputTranscription?.finished) send({ type: 'processing' });
