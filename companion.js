@@ -101,9 +101,41 @@ function attachCompanion(app, server, requireAuth) {
     });
   });
   app.get('/api/companion', async (req, res) => res.json({ configured: configured(), chatConfigured: chatProvider.configured(), chatProvider: chatProvider.provider(), voices, notes: await db.profile(req.user.id), messages: await db.history(req.user.id) }));
-  app.get('/api/companion/live', (req, res) => {
-    if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') return;
-    res.status(426).json({ error: 'Upgrade Required. Live voice requires a WebSocket connection.' });
+  app.get('/api/companion/live/test-upgrade', (req, res) => {
+    const url = new URL(req.url, 'http://localhost');
+    let sameOrigin = false;
+    try {
+      if (!req.headers.origin) {
+        sameOrigin = true;
+      } else {
+        const originHost = new URL(req.headers.origin).host;
+        const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+        sameOrigin = originHost === req.headers.host ||
+          originHost === 'zuno.runs-on.dev' ||
+          originHost.endsWith('.runs-on.dev') ||
+          originHost.endsWith('.vercel.app') ||
+          allowed.includes(originHost);
+      }
+    } catch {}
+    const ticket = url.searchParams.get('ticket');
+    let entry = null, verifyError = null;
+    if (ticket) {
+      try {
+        const decoded = jwt.verify(ticket, signingSecret());
+        if (decoded && decoded.user) {
+          entry = { user: decoded.user, timezone: decoded.timezone, voice: decoded.voice, expires: Date.now() + 60000 };
+        }
+      } catch (err) { verifyError = err.message; }
+    }
+    const isLivePath = true;
+    res.json({
+      url: req.url,
+      sameOrigin,
+      hasEntry: Boolean(entry),
+      verifyError,
+      active: entry ? active.has(entry.user.id) : null,
+      chats: entry ? chats.has(entry.user.id) : null
+    });
   });
   scheduler.attach(app);
   require('./study').attach(app);
