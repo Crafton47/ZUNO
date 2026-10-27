@@ -161,7 +161,8 @@ $('call').onclick = async () => {
     const { ticket } = await api('/call', { method: 'POST', body: JSON.stringify({ voice: $('voice').value, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) });
     if (call !== c) return;
     $('call-status').textContent = 'Connecting to ZUNO…';
-    c.socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/companion/live?ticket=${encodeURIComponent(ticket)}`);
+    const wsHost = window.ZUNO_BACKEND_HOST || location.host;
+    c.socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${wsHost}/api/companion/live?ticket=${encodeURIComponent(ticket)}`);
     c.socket.onmessage = event => {
       if (call !== c) return;
       try {
