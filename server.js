@@ -50,7 +50,7 @@ app.get('/study', (req, res) => res.sendFile(path.join(__dirname, 'study.html'))
 app.get('/radio', (req, res) => res.redirect('/chat#zuno-radio'));
 
 // ── JWT Verification Middleware ────────────────────────────────
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = typeof authHeader === 'string' && /^Bearer ([^\s]+)$/i.exec(authHeader)?.[1];
 
@@ -59,7 +59,11 @@ function requireAuth(req, res, next) {
   }
   try {
     const payload = jwt.verify(token, SECRET, { algorithms: ['HS256'] });
-    if (!Number.isSafeInteger(payload.id) || payload.id < 1 || !db.findUserById(payload.id)) {
+    if (!Number.isSafeInteger(payload.id) || payload.id < 1) {
+      return res.status(401).json({ error: 'Please log in again.' });
+    }
+    const user = await db.findUserById(payload.id);
+    if (!user) {
       return res.status(401).json({ error: 'Please log in again.' });
     }
     req.user = payload;
@@ -83,6 +87,12 @@ app.get('/', (req, res) => {
 // Protected chatbot page
 app.get('/chat', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// ── API: Health Check ──────────────────────────────────────────
+app.get('/api', (req, res) => res.json({ status: 'ok', name: 'ZUNO API' }));
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: Math.floor(process.uptime()), timestamp: new Date().toISOString() });
 });
 
 // ── API: Register ──────────────────────────────────────────────
@@ -114,16 +124,16 @@ app.post('/api/register', async (req, res) => {
     const cleanEmail    = email.trim().toLowerCase();
 
     // === Check uniqueness ===
-    if (db.usernameExists(cleanUsername)) {
+    if (await db.usernameExists(cleanUsername)) {
       return fail(res, 409, 'Unable to create an account with these details.');
     }
-    if (db.emailExists(cleanEmail)) {
+    if (await db.emailExists(cleanEmail)) {
       return fail(res, 409, 'Unable to create an account with these details.');
     }
 
     // === Hash password & create user ===
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
-    const id   = db.createUser({ username: cleanUsername, email: cleanEmail, password: hash });
+    const id   = await db.createUser({ username: cleanUsername, email: cleanEmail, password: hash });
 
     return ok(res, { message: 'Account created! You can now log in.' });
 
@@ -143,7 +153,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const user = db.findUserByEmail(cleanEmail);
+    const user = await db.findUserByEmail(cleanEmail);
 
     const passwordMatch = await bcrypt.compare(password, user ? user.password : dummyPasswordHash);
     if (!user || !passwordMatch) {
@@ -169,8 +179,8 @@ app.post('/api/login', async (req, res) => {
 });
 
 // ── API: Verify Token (used by chatbot page on load) ──────────
-app.get('/api/me', requireAuth, (req, res) => {
-  const user = db.findUserById(req.user.id);
+app.get('/api/me', requireAuth, async (req, res) => {
+  const user = await db.findUserById(req.user.id);
   if (!user) return fail(res, 404, 'User not found.');
   return ok(res, { user });
 });
@@ -191,15 +201,34 @@ app.use((error, req, res, next) => {
 });
 
 let dummyPasswordHash;
+let initPromise = null;
+async function ensureInit() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      dummyPasswordHash = await bcrypt.hash(require('crypto').randomBytes(32).toString('hex'), SALT_ROUNDS);
+      await db.init();
+    })();
+  }
+  return initPromise;
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureInit();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 async function startServer() {
   try {
-    dummyPasswordHash = await bcrypt.hash(require('crypto').randomBytes(32).toString('hex'), SALT_ROUNDS);
-    await db.init();  // Load / create SQLite database (sql.js needs async WASM init)
+    await ensureInit();
     server.listen(PORT, () => {
       console.log(`\n🚀 Vibe AI Server running at: http://localhost:${PORT}`);
       console.log(`   → Login page:   http://localhost:${PORT}/login.html`);
       console.log(`   → Chatbot:      http://localhost:${PORT}/chat`);
-      console.log(`   → Database:     vibeai.db\n`);
+      console.log(`   → Database:     ${process.env.DATABASE_URL ? 'Supabase PostgreSQL' : 'vibeai.db'}\n`);
     });
   } catch (err) {
     console.error('[STARTUP ERROR] Could not initialize the database or server. Check local configuration and file permissions.');
@@ -207,4 +236,8 @@ async function startServer() {
   }
 }
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = { app, server, startServer, ensureInit };

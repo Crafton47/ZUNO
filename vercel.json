@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": ".",
   "cleanUrls": true,
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 300
+    }
+  },
   "rewrites": [
     { "source": "/assets/(.*)", "destination": "/public/$1" },
     { "source": "/chat", "destination": "/index.html" },
