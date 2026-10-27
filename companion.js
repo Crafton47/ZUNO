@@ -90,12 +90,21 @@ function attachCompanion(app, server, requireAuth) {
   }, 60000);
   sweep.unref();
   server.on('close', () => clearInterval(sweep));
-  app.use('/api/companion', requireAuth, async (req, res, next) => {
-    res.set('Cache-Control', 'no-store');
-    if (!(await db.findUserById(req.user.id))) return res.status(401).json({ error: 'Please log in again.' });
-    next();
+  app.use('/api/companion', (req, res, next) => {
+    if (req.path === '/live' || (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket')) {
+      return next();
+    }
+    return requireAuth(req, res, async () => {
+      res.set('Cache-Control', 'no-store');
+      if (!(await db.findUserById(req.user.id))) return res.status(401).json({ error: 'Please log in again.' });
+      next();
+    });
   });
   app.get('/api/companion', async (req, res) => res.json({ configured: configured(), chatConfigured: chatProvider.configured(), chatProvider: chatProvider.provider(), voices, notes: await db.profile(req.user.id), messages: await db.history(req.user.id) }));
+  app.get('/api/companion/live', (req, res) => {
+    if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') return;
+    res.status(426).json({ error: 'Upgrade Required. Live voice requires a WebSocket connection.' });
+  });
   scheduler.attach(app);
   require('./study').attach(app);
   require('./radio').attach(app);
