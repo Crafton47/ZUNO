@@ -10,6 +10,8 @@ const path = require('path');
 const fs   = require('fs');
 const initSqlJs = require('sql.js');
 const { Pool } = require('pg');
+const { AsyncLocalStorage } = require('node:async_hooks');
+const transactions = new AsyncLocalStorage();
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'vibeai.db');
 const isExplicitTestDb = Boolean(process.env.DB_PATH && path.basename(process.env.DB_PATH) !== 'vibeai.db');
@@ -27,10 +29,29 @@ function getPool() {
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false },
       connectionTimeoutMillis: 10000,
-      max: 10
+      max: 3,
+      idleTimeoutMillis: 10000,
+      allowExitOnIdle: true
     });
   }
   return pgPool;
+}
+function query(sql, params) {
+  return (transactions.getStore() || getPool()).query(sql, params);
+}
+
+async function pgTransaction(fn) {
+  if (transactions.getStore()) return fn();
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    const result = await transactions.run(client, fn);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally { client.release(); }
 }
 
 function toPg(sql) {
@@ -135,7 +156,7 @@ async function init() {
 module.exports = {
   rows(sql, params = []) {
     if (usePg) {
-      return getPool().query(toPg(sql), params).then(res => res.rows);
+      return query(toPg(sql), params).then(res => res.rows);
     }
     const stmt = db.prepare(sql);
     try { stmt.bind(params); const rows = []; while (stmt.step()) rows.push(stmt.getAsObject()); return rows; }
@@ -143,19 +164,19 @@ module.exports = {
   },
   write(sql, params = []) {
     if (usePg) {
-      return getPool().query(toPg(sql), params);
+      return query(toPg(sql), params);
     }
     db.run(sql, params); saveToDisk();
   },
   execute(sql, params = []) {
     if (usePg) {
-      return getPool().query(toPg(sql), params);
+      return query(toPg(sql), params);
     }
     db.run(sql, params);
   },
   transaction(fn) {
     if (usePg) {
-      return fn();
+      return pgTransaction(fn);
     }
     db.run('BEGIN');
     let result;
@@ -258,4 +279,5 @@ module.exports = {
   init,
   toPg,
   getPool
+  ,isPostgres: usePg
 };

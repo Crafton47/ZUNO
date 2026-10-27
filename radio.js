@@ -56,22 +56,22 @@ const unpack = row => {
 async function enrich(rows, owner) {
   const reports = await Promise.all(Array.from({ length: Math.ceil(rows.length / 50) }, (_, batch) => fetchMetadata(rows.slice(batch * 50, batch * 50 + 50).map(row => row.youtube_id))));
   let updated = 0, unavailable = 0;
-  db.transaction(() => {
-    rows.forEach((row, index) => {
+  (await db.transaction(async () => {
+    for (const [index, row] of rows.entries()) {
       const result = reports[Math.floor(index / 50)], metadata = result.items?.get(row.youtube_id);
       const status = result.status === 'available' && !metadata ? 'unavailable' : result.status;
       if (metadata) {
-        db.execute('UPDATE radio_playlists SET metadata_json = ? WHERE id = ? AND user_id = ?', [JSON.stringify(metadata), row.id, owner]); updated++;
+        (await db.execute('UPDATE radio_playlists SET metadata_json = ? WHERE id = ? AND user_id = ?', [JSON.stringify(metadata), row.id, owner])); updated++;
       }
       if (status === 'unavailable') unavailable++;
-      db.execute('UPDATE radio_playlists SET metadata_status = ?, metadata_checked_at = ? WHERE id = ? AND user_id = ?', [status, new Date().toISOString(), row.id, owner]);
-    });
-  });
+      (await db.execute('UPDATE radio_playlists SET metadata_status = ?, metadata_checked_at = ? WHERE id = ? AND user_id = ?', [status, new Date().toISOString(), row.id, owner]));
+    }
+  }));
   const failure = reports.find(result => result.status !== 'available');
   return { updated, unavailable, status: failure?.status || 'available', message: failure?.message || (unavailable ? `${updated} updated; ${unavailable} playlists are private, deleted or inaccessible. Previous details were kept.` : `${updated} playlists refreshed from YouTube.`) };
 }
-function readTrackCache(owner, playlist) {
-  const row = db.rows('SELECT payload_json, fetched_at FROM radio_playlist_tracks WHERE user_id = ? AND playlist_id = ?', [owner, playlist.id])[0];
+async function readTrackCache(owner, playlist) {
+  const row = (await db.rows('SELECT payload_json, fetched_at FROM radio_playlist_tracks WHERE user_id = ? AND playlist_id = ?', [owner, playlist.id]))[0];
   if (!row) return null;
   try {
     const payload = JSON.parse(row.payload_json);
@@ -79,46 +79,48 @@ function readTrackCache(owner, playlist) {
     return { ...payload, fetchedAt: row.fetched_at };
   } catch { return null; }
 }
-function writeTrackCache(owner, playlist, payload) {
+async function writeTrackCache(owner, playlist, payload) {
   const fetchedAt = payload.fetchedAt || new Date().toISOString();
   const clean = { status: payload.status, message: payload.message, partial: !!payload.partial, truncated: !!payload.truncated, tracks: payload.tracks, fetchedAt };
-  db.write('INSERT OR REPLACE INTO radio_playlist_tracks (user_id, playlist_id, payload_json, fetched_at) VALUES (?,?,?,?)', [owner, playlist.id, JSON.stringify(clean), fetchedAt]);
+  (await db.write('INSERT OR REPLACE INTO radio_playlist_tracks (user_id, playlist_id, payload_json, fetched_at) VALUES (?,?,?,?)', [owner, playlist.id, JSON.stringify(clean), fetchedAt]));
   return clean;
 }
 function attach(app) {
+  const safe = {};
+  for (const method of ['get','post','patch','delete']) safe[method] = (route, handler) => app[method](route, (req, res, next) => Promise.resolve().then(() => handler(req, res, next)).catch(next));
   const base = '/api/companion/radio/playlists';
   const refreshTimes = new Map();
   const trackRefreshTimes = new Map();
   const trackInflight = new Map();
-  const owned = (req, id) => db.rows('SELECT * FROM radio_playlists WHERE id = ? AND user_id = ?', [id, req.user.id])[0];
-  app.get(base, (req, res) => res.json({ playlists: db.rows('SELECT * FROM radio_playlists WHERE user_id = ? ORDER BY created_at, id', [req.user.id]).map(unpack) }));
-  app.post(base, async (req, res, next) => {
+  const owned = async (req, id) => (await db.rows('SELECT * FROM radio_playlists WHERE id = ? AND user_id = ?', [id, req.user.id]))[0];
+  safe.get(base, async (req, res) => res.json({ playlists: (await db.rows('SELECT * FROM radio_playlists WHERE user_id = ? ORDER BY created_at, id', [req.user.id])).map(unpack) }));
+  safe.post(base, async (req, res, next) => {
     let id, details;
     try { id = playlistId(req.body?.url); details = fields(req.body); } catch (e) { return res.status(400).json({ error: e.message }); }
-    if (db.rows('SELECT id FROM radio_playlists WHERE user_id = ? AND youtube_id = ?', [req.user.id, id]).length) return res.status(409).json({ error: 'This playlist is already in your library.' });
-    if (db.rows('SELECT COUNT(*) AS n FROM radio_playlists WHERE user_id = ?', [req.user.id])[0].n >= 200) return res.status(400).json({ error: 'Your library is full (200 playlists). Remove one before adding another.' });
+    if ((await db.rows('SELECT id FROM radio_playlists WHERE user_id = ? AND youtube_id = ?', [req.user.id, id])).length) return res.status(409).json({ error: 'This playlist is already in your library.' });
+    if ((await db.rows('SELECT COUNT(*) AS n FROM radio_playlists WHERE user_id = ?', [req.user.id]))[0].n >= 200) return res.status(400).json({ error: 'Your library is full (200 playlists). Remove one before adding another.' });
     const row = { id: randomUUID(), user_id: req.user.id, youtube_id: id, label: details.label || 'My YouTube playlist', tags: JSON.stringify(details.tags), created_at: new Date().toISOString() };
     try {
-      db.write('INSERT INTO radio_playlists (id,user_id,youtube_id,label,tags,created_at,custom_label) VALUES (?,?,?,?,?,?,?)', [...Object.values(row), details.label || null]);
+      (await db.write('INSERT INTO radio_playlists (id,user_id,youtube_id,label,tags,created_at,custom_label) VALUES (?,?,?,?,?,?,?)', [...Object.values(row), details.label || null]));
       const metadata = await enrich([row], req.user.id);
-      const saved = db.rows('SELECT * FROM radio_playlists WHERE id = ? AND user_id = ?', [row.id, req.user.id])[0];
+      const saved = (await db.rows('SELECT * FROM radio_playlists WHERE id = ? AND user_id = ?', [row.id, req.user.id]))[0];
       if (!saved) return res.status(404).json({ error: 'This playlist was removed while metadata was loading.' });
       res.status(201).json({ playlist: unpack(saved), metadata });
     } catch (error) { next(error); }
   });
-  app.post(base + '/metadata/refresh', async (req, res, next) => {
+  safe.post(base + '/metadata/refresh', async (req, res, next) => {
     const now = Date.now();
     for (const [owner, time] of refreshTimes) if (now - time >= 30000) refreshTimes.delete(owner);
     if (refreshTimes.has(req.user.id)) return res.status(429).set('Retry-After', '30').json({ error: 'Please wait 30 seconds before refreshing metadata again.' });
     refreshTimes.set(req.user.id, now);
     try {
-      const rows = db.rows('SELECT * FROM radio_playlists WHERE user_id = ?', [req.user.id]);
+      const rows = (await db.rows('SELECT * FROM radio_playlists WHERE user_id = ?', [req.user.id]));
       const metadata = rows.length ? await enrich(rows, req.user.id) : { updated: 0, message: 'Add a playlist first.' };
-      res.json({ metadata, playlists: db.rows('SELECT * FROM radio_playlists WHERE user_id = ? ORDER BY created_at, id', [req.user.id]).map(unpack) });
+      res.json({ metadata, playlists: (await db.rows('SELECT * FROM radio_playlists WHERE user_id = ? ORDER BY created_at, id', [req.user.id])).map(unpack) });
     } catch (error) { next(error); }
   });
   async function tracksFor(req, playlist, force) {
-    const cached = readTrackCache(req.user.id, playlist);
+    const cached = (await readTrackCache(req.user.id, playlist));
     const fresh = cached && Date.now() - Date.parse(cached.fetchedAt) < TRACK_CACHE_TTL;
     if (cached && fresh && !force) return { ...cached, cached: true, stale: false };
     const key = req.user.id + ':' + playlist.id;
@@ -131,10 +133,10 @@ function attach(app) {
           thumbnailUrl: result.playlist.thumbnailUrl, itemCount: result.playlist.itemCount,
           fetchedAt: result.fetchedAt || new Date().toISOString()
         };
-        db.write('UPDATE radio_playlists SET metadata_json = ?, metadata_status = ?, metadata_checked_at = ? WHERE id = ? AND user_id = ?', [JSON.stringify(metadata), 'available', result.fetchedAt || new Date().toISOString(), playlist.id, req.user.id]);
+        (await db.write('UPDATE radio_playlists SET metadata_json = ?, metadata_status = ?, metadata_checked_at = ? WHERE id = ? AND user_id = ?', [JSON.stringify(metadata), 'available', result.fetchedAt || new Date().toISOString(), playlist.id, req.user.id]));
       }
       if (result.status === 'available' && Array.isArray(result.tracks)) {
-        const saved = writeTrackCache(req.user.id, playlist, result);
+        const saved = (await writeTrackCache(req.user.id, playlist, result));
         return { ...saved, cached: false, stale: false };
       }
       if (cached) return { ...cached, cached: true, stale: true, status: result.status, message: result.message + ' Showing the saved track list from ' + cached.fetchedAt + '.' };
@@ -143,8 +145,8 @@ function attach(app) {
     trackInflight.set(key, job);
     return job;
   }
-  app.get(base + '/:id/tracks', async (req, res, next) => {
-    const playlist = owned(req, req.params.id);
+  safe.get(base + '/:id/tracks', async (req, res, next) => {
+    const playlist = (await owned(req, req.params.id));
     if (!playlist) return res.status(404).json({ error: 'Playlist not found in your library.' });
     const force = req.query.refresh === '1';
     if (force) {
@@ -156,26 +158,26 @@ function attach(app) {
     }
     try {
       const result = await tracksFor(req, playlist, force);
-      const latest = owned(req, playlist.id) || playlist;
+      const latest = (await owned(req, playlist.id)) || playlist;
       res.json({ ...result, playlist: unpack(latest) });
     } catch (error) { next(error); }
   });
-  app.patch(base + '/:id', (req, res) => {
-    const row = owned(req, req.params.id);
+  safe.patch(base + '/:id', async (req, res) => {
+    const row = (await owned(req, req.params.id));
     if (!row) return res.status(404).json({ error: 'Playlist not found in your library.' });
     let details;
     try { details = fields(req.body, row); } catch (e) { return res.status(400).json({ error: e.message }); }
-    db.write('UPDATE radio_playlists SET label = ?, custom_label = ?, tags = ? WHERE id = ? AND user_id = ?', [details.label || 'My YouTube playlist', details.label || null, JSON.stringify(details.tags), row.id, req.user.id]);
-    const latest = owned(req, row.id);
+    (await db.write('UPDATE radio_playlists SET label = ?, custom_label = ?, tags = ? WHERE id = ? AND user_id = ?', [details.label || 'My YouTube playlist', details.label || null, JSON.stringify(details.tags), row.id, req.user.id]));
+    const latest = (await owned(req, row.id));
     res.json({ playlist: unpack(latest) });
   });
-  app.delete(base + '/:id', (req, res) => {
-    const row = owned(req, req.params.id);
+  safe.delete(base + '/:id', async (req, res) => {
+    const row = (await owned(req, req.params.id));
     if (!row) return res.status(404).json({ error: 'Playlist not found in your library.' });
-    db.transaction(() => {
-      db.execute('DELETE FROM radio_playlist_tracks WHERE user_id = ? AND playlist_id = ?', [req.user.id, row.id]);
-      db.execute('DELETE FROM radio_playlists WHERE id = ? AND user_id = ?', [row.id, req.user.id]);
-    });
+    (await db.transaction(async () => {
+      (await db.execute('DELETE FROM radio_playlist_tracks WHERE user_id = ? AND playlist_id = ?', [req.user.id, row.id]));
+      (await db.execute('DELETE FROM radio_playlists WHERE id = ? AND user_id = ?', [row.id, req.user.id]));
+    }));
     res.json({ success: true });
   });
 }

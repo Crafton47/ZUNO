@@ -69,6 +69,12 @@ function citationsFor(answer, allowed) {
   return { text, citations };
 }
 function attach(app) {
+  if (process.env.VERCEL || db.isPostgres) {
+    const message = 'Study Studio and Exam Rescue need the persistent Open Notebook service. It is not hosted by this Vercel deployment; existing notebooks remain preserved.';
+    app.get('/api/companion/study/status', (req, res) => res.json({ available: false, message }));
+    app.use('/api/companion/study', (req, res) => res.status(503).json({ error: message }));
+    return;
+  }
   const router = express.Router(), locks = new Set();
   const wrap = handler => async (req, res, next) => { req.running = true; try { await handler(req, res); } catch (e) { next(e); } finally { if (req.lock) locks.delete(req.lock); } };
   router.get('/status', wrap(async (req, res) => {

@@ -56,7 +56,7 @@ async function reply(system, history, text, actions) {
         messages.push(message);
         for (const call of message.tool_calls) {
           let result;
-          try { result = actions.run(call.function.name, JSON.parse(call.function.arguments || '{}'), call.id || `${round}-${messages.length}`); }
+          try { result = await actions.run(call.function.name, JSON.parse(call.function.arguments || '{}'), call.id || `${round}-${messages.length}`); }
           catch { result = { error: 'Invalid planner arguments. Ask the user to clarify.' }; }
           messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(result) });
         }
@@ -73,7 +73,9 @@ async function reply(system, history, text, actions) {
     if (actions && response.functionCalls?.length) {
       if (response.functionCalls.length > 10) throw new Error('Too many planner actions.');
       contents.push(response.candidates[0].content);
-      contents.push({ role: 'user', parts: response.functionCalls.map((call, i) => ({ functionResponse: { name: call.name, response: actions.run(call.name, call.args || {}, call.id || `${round}-${i}`) } })) });
+      const parts = [];
+      for (const [i, call] of response.functionCalls.entries()) parts.push({ functionResponse: { name: call.name, response: await actions.run(call.name, call.args || {}, call.id || `${round}-${i}`) } });
+      contents.push({ role: 'user', parts });
       continue;
     }
     if (response.text) return response.text;

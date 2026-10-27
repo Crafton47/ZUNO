@@ -8,7 +8,7 @@ const scheduler = require('./scheduler');
 
 const liveModel = () => process.env.GEMINI_LIVE_MODEL || 'gemini-2.5-flash-native-audio-preview-12-2025';
 const client = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const configured = () => Boolean(process.env.GEMINI_API_KEY);
+const configured = () => !process.env.VERCEL && Boolean(process.env.GEMINI_API_KEY);
 const voices = ['Aoede', 'Kore', 'Puck', 'Charon'];
 function instruction(user, timezone, profileNotes = '') {
   return `You are ZUNO, a friendly, playful, intelligent student AI companion. Use gentle wit, stay emotionally considerate, and speak naturally in English, Hindi, or Hinglish to match the user. Encourage without pressure or guilt. Be honest that you are AI.
@@ -93,17 +93,18 @@ function attachCompanion(app, server, requireAuth) {
   scheduler.attach(app);
   require('./study').attach(app);
   require('./radio').attach(app);
-  app.put('/api/companion/profile', available, async (req, res) => {
+  app.put('/api/companion/profile', async (req, res) => {
     if (typeof req.body.notes !== 'string' || req.body.notes.length > 2000) return res.status(400).json({ error: 'Personal context must be at most 2,000 characters.' });
     await db.saveProfile(req.user.id, req.body.notes.trim());
     res.json({ success: true });
   });
-  app.delete('/api/companion/history', available, async (req, res) => {
+  app.delete('/api/companion/history', async (req, res) => {
     if (active.has(req.user.id) || chats.has(req.user.id)) return res.status(409).json({ error: 'End your call or wait for the reply before clearing history.' });
     await db.clearHistory(req.user.id);
     res.json({ success: true });
   });
   function available(req, res, next) {
+    if (process.env.VERCEL && req.path.endsWith('/call')) return res.status(503).json({ error: 'Live voice needs a persistent WebSocket service, which this Vercel deployment does not provide. Text chat remains available.' });
     if (req.path.endsWith('/chat') ? !chatProvider.configured() : !configured()) return res.status(503).json({ error: 'Configure GEMINI_API_KEY for voice, or NVIDIA_API_KEY / GEMINI_API_KEY for your selected chat provider in .env, then restart npm start.' });
     const now = Date.now();
     const bucket = attempts.get(req.user.id) || { count: 0, until: now + 60000 };
@@ -124,12 +125,12 @@ function attachCompanion(app, server, requireAuth) {
       const gifted = scheduler.mentionsDeadline(text, timezone);
       const actions = {
         tools: scheduler.tools,
-        run: (name, args, callId) => {
+        run: async (name, args, callId) => {
           // Drop a deadline the model invented when the user never gave one.
           const payload = name === 'add_tasks' && !gifted && Array.isArray(args?.tasks)
             ? { ...args, tasks: args.tasks.map(task => task && typeof task === 'object' ? { ...task, when: null, dueAt: null } : task) }
             : args;
-          const result = scheduler.runTool(id, name, payload, timezone, actionPrefix + ':' + callId);
+          const result = await scheduler.runTool(id, name, payload, timezone, actionPrefix + ':' + callId);
           results.push({ name, result });
           return result;
         }

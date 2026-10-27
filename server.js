@@ -24,7 +24,7 @@ async function ensureInit() {
     initPromise = (async () => {
       dummyPasswordHash = await bcrypt.hash(require('crypto').randomBytes(32).toString('hex'), SALT_ROUNDS);
       await db.init();
-    })();
+    })().catch(error => { initPromise = null; throw error; });
   }
   return initPromise;
 }

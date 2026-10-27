@@ -240,3 +240,4 @@ function attach(app) {
   app.get('/api/companion/calendar', (req, res) => { const exams=examMetadata(req.user.id); res.type('text/calendar').attachment('vibe-planner.ics').send(calendar(list(req.user.id).map(t=>{const e=exams.find(e=>e.taskId===t.id);return {...t,end_at:e?.end,reminders:e?e.reminders:undefined};}))); });
 }
 module.exports = { attach, tools, runTool, context, zone, validate, list, reminders, calendar, mentionsDeadline, complete };
+if (db.isPostgres) module.exports = require('./scheduler-postgres')(module.exports);
