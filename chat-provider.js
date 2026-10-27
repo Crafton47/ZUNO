@@ -1,4 +1,4 @@
-﻿const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenAI } = require('@google/genai');
 const TIMEOUT = 30000;
 function provider() { return process.env.CHAT_PROVIDER || (process.env.NVIDIA_API_KEY ? 'nvidia' : 'gemini'); }
 function configured() { return provider() === 'nvidia' ? Boolean(process.env.NVIDIA_API_KEY) : provider() === 'gemini' && Boolean(process.env.GEMINI_API_KEY); }
@@ -84,4 +84,36 @@ async function reply(system, history, text, actions) {
   }
   return 'Please check your planner for the actions already saved. We reached the action limit for this message; tell me what you would like to do next.';
 }
-module.exports = { provider, configured, reply };
+
+async function generateText({ system, prompt, temperature = 0.3, maxTokens = 2000 }) {
+  if (provider() === 'nvidia') {
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    messages.push({ role: 'user', content: prompt });
+    const message = await nvidia({
+      model: process.env.NVIDIA_CHAT_MODEL || 'nvidia/nemotron-3.5-lightning-30b-a3b',
+      messages,
+      max_tokens: maxTokens,
+      temperature,
+      stream: false,
+      chat_template_kwargs: { enable_thinking: false }
+    });
+    if (typeof message.content === 'string' && message.content.trim()) return message.content;
+    throw new Error('Empty provider response');
+  }
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const response = await gemini(ai, {
+    model: process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash',
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    config: {
+      ...(system ? { systemInstruction: system } : {}),
+      maxOutputTokens: maxTokens,
+      temperature,
+      httpOptions: { timeout: TIMEOUT }
+    }
+  });
+  if (response.text) return response.text;
+  throw new Error('Empty provider response');
+}
+
+module.exports = { provider, configured, reply, generateText };

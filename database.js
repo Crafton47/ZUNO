@@ -54,8 +54,16 @@ async function pgTransaction(fn) {
   } finally { client.release(); }
 }
 
+function normalizeStudySql(sql) {
+  let s = sql;
+  if (/INSERT\s+INTO\s+study_items\s+VALUES\s*\(\s*\?,\s*\?,\s*\?,\s*\?,\s*\?,\s*\?\s*\)/i.test(s)) {
+    s = s.replace(/INSERT\s+INTO\s+study_items\s+VALUES/i, 'INSERT INTO study_items (id, notebook_id, user_id, remote_id, kind, title) VALUES');
+  }
+  return s;
+}
+
 function toPg(sql) {
-  let pgSql = sql;
+  let pgSql = normalizeStudySql(sql);
   let hasIgnore = false;
   if (/INSERT\s+OR\s+IGNORE\s+INTO\s+/i.test(pgSql)) {
     pgSql = pgSql.replace(/INSERT\s+OR\s+IGNORE\s+INTO\s+/i, 'INSERT INTO ');
@@ -67,6 +75,8 @@ function toPg(sql) {
     pgSql = 'INSERT INTO exam_plans (id, user_id, notebook_id, revision, data) VALUES (?, ?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET revision = EXCLUDED.revision, data = EXCLUDED.data';
   } else if (/INSERT\s+OR\s+REPLACE\s+INTO\s+radio_playlist_tracks/i.test(pgSql)) {
     pgSql = 'INSERT INTO radio_playlist_tracks (user_id, playlist_id, payload_json, fetched_at) VALUES (?, ?, ?, ?) ON CONFLICT (user_id, playlist_id) DO UPDATE SET payload_json = EXCLUDED.payload_json, fetched_at = EXCLUDED.fetched_at';
+  } else if (/INSERT\s+OR\s+REPLACE\s+INTO\s+study_item_contents/i.test(pgSql)) {
+    pgSql = 'INSERT INTO study_item_contents (item_id, content, status) VALUES (?, ?, ?) ON CONFLICT (item_id) DO UPDATE SET content = EXCLUDED.content, status = EXCLUDED.status';
   }
   let i = 1;
   pgSql = pgSql.replace(/\?/g, () => '$' + (i++));
@@ -163,12 +173,14 @@ module.exports = {
     finally { stmt.free(); }
   },
   write(sql, params = []) {
+    sql = normalizeStudySql(sql);
     if (usePg) {
       return query(toPg(sql), params);
     }
     db.run(sql, params); saveToDisk();
   },
   execute(sql, params = []) {
+    sql = normalizeStudySql(sql);
     if (usePg) {
       return query(toPg(sql), params);
     }

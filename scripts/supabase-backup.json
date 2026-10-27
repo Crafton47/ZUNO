@@ -1,0 +1,568 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "testuser",
+      "email": "test@example.com",
+      "password": "$2b$12$Za4MKUP459DwIMmEtlQRV.IL5siHTAjyTsoZ2l6G2Wfu0Lc/SBWXa",
+      "created_at": "2026-03-07 08:42:39"
+    },
+    {
+      "id": 2,
+      "username": "shayak47",
+      "email": "shayakmukherjee72@gmail.com",
+      "password": "$2b$12$c4TDdPObEmrrjSHTC6ZTROOZh8UVPE17TOcwxYmSQ2zUCes2DvBOi",
+      "created_at": "2026-03-07 08:50:14"
+    }
+  ],
+  "study_notebooks": [
+    {
+      "id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2,
+      "remote_id": "notebook:824yfs7fju25rs382aok",
+      "name": "shayak",
+      "opened_at": "2026-10-27T09:44:57.734Z"
+    }
+  ],
+  "study_items": [
+    {
+      "id": "06aabacf-621a-42f7-9612-a75dd87d850d",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2,
+      "remote_id": "source:cjre8ylldciau0rt0rwo",
+      "kind": "source",
+      "title": "PPT_SIH26028 (1).pdf"
+    }
+  ],
+  "study_tasks": [
+    {
+      "task_id": "0520a168-031e-4e2a-86a1-f9c87c6f7f41",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "a01ff097-4ed5-4216-8fd5-1cacdbca586a",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "fb953c31-5687-4edc-8c82-eab82fe39b4d",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "99815a91-213d-4e4e-85fb-e3d3ef7aaa0e",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "e1c2e76e-8d99-4f84-a7f6-5ce7e6d26ca6",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "166c959b-12d1-4dd0-843e-2482632ce3c2",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "f28b8652-ddd3-4872-8d24-7fabfd9d2e33",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "034d9516-1398-4bd5-aa9b-80f3ee5d7151",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "76923007-786b-40d2-93a6-59f7d4c91a01",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "eb632eb1-3d18-4e10-9d04-a4a916a40450",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "ecb44a03-5924-43d1-a5ff-c8ef13a7d081",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "479e33f5-76c7-4dbc-aaac-e3a6d93b093d",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "dd3dcbfa-eff8-4e73-9cff-a88242b752ce",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "789c1735-cb7b-483f-8fb8-d0b71fa4258c",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "8f22d9e6-15be-4d19-b77b-4dc5ec3d5b47",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "9657f3be-86c8-460a-82ac-da4788d62cac",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "5792b1e7-405a-4e73-b41c-eaed165fd59d",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "bceb8e55-8072-4a2b-aa36-404b8fee3f75",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "752899dd-fd35-4fff-b25b-18e4a6d45fb5",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "145d2c91-f2dc-4616-a713-fabf8b25c8ce",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "2c5496d7-ce8c-4dc8-a6d8-fed9067afa0c",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    },
+    {
+      "task_id": "04c8de5b-7027-4ee2-b990-428ad59aec32",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2
+    }
+  ],
+  "study_messages": [
+    {
+      "id": "5b7af7b2-b4ee-4f5b-a791-09ca5e986f29",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2,
+      "question": "Summarize the key concepts in this notebook. Include supporting source references and a short revision checklist.",
+      "answer": "**Key Concepts Summary**\n\n- **Problem Statement (SIH26028):** Static ETA based on scheduled timings does not adapt when trains face delays from signals, traffic, speed limits, or unexpected stops. Delays can propagate across stations, causing cascading network impacts [1].\n\n- **Proposed Solution – Dynamic ETA Engine:** Continuously predicts arrival time using live train data and past running patterns. Employs multi-factor prediction incorporating train location, current delay, travel time, and operating conditions. Provides station-wise forecasting with automatic updates whenever new live information arrives [1].\n\n- **Unique Value Proposition (UVP):** \n  1. Predicts when the train is likely to arrive (not just where it is now). \n  2. Shows how current delay may affect upcoming stations. \n  3. Gives an expected time range with confidence-based uncertainty instead of a single exact time. \n  4. Explains the main reason whenever the predicted arrival time changes [1].\n\n- **End-to-End Technical Workflow (Rail Cast Pipeline):** Delay detected → live location ingested via RTIS → affected section identified → last known location used → historical patterns retrieved via ML → impact magnitude estimated → ETA forecast with confidence intervals → real-time recomputation on new data → cascade recalculation of network ETAs → passenger/staff notifications via Dashboard/WebSocket [1].\n\n- **ML & Data Components:** Inputs include live GPS location, historical running patterns, operational data (weather, congestion, junction status, dwell time). Feature engineering combines multi-factor inputs. Model output: predicted delay in minutes, dynamic ETA with confidence range, and reason for changes. Uses HistGradientBoostingRegressor / API Regressor [1].\n\n- **Tech Stack:** Python, TensorFlow, Keras, Scikit-Learn; Docker for consistent environment; MongoDB (RailCast database); Kafka for consistent data ingestion & sync; FastAPI for modular micro-service architecture [1].\n\n- **Feasibility & Viability:** Modular micro-service architecture using FastAPI, applicable across railway routes and stations. Combines historical + live operational data to support continuous train-status updates. Designed to integrate via APIs with existing railway information systems. Supports cloud or on-premise deployment and scales from selected routes to larger networks [1].\n\n- **Impact & Benefits (vs. \"Where is My Train\"):** \n  - Dynamic ETA forecasting using live/historical/operational data vs. basic live tracking & schedule-based ETA. \n  - Confidence-based ETA time ranges vs. single expected time. \n  - Analyzes delay propagation across the route vs. shows current delay only. \n  - Provides section controllers a 45-minute advance tactical heat map for gridlock prevention. \n  - Reduces uncertainty, platform overcrowding, locomotive diesel/electric traction costs, and network-wide gridlocks. \n  - Improves passenger trust, passenger planning, and freight/cargo throughput [1].\n\n- **Research Basis:** Machine-learning approaches identify railway delay patterns to improve predictive accuracy. Real-Time Train Information System (RTIS) provides real-time movement data. Delay propagation research shows delays spread through interconnected operations. Indian Railways Year Book 2025-26 references railway operations, RTIS deployment, and data-driven forecasting methods [1].\n\n---\n\n**Revision Checklist**\n- [ ] Understand the core problem: static ETA limitations and delay propagation in coaching trains [1]\n- [ ] Recall the 4 UVP pillars: predict arrival time, delay impact prediction, confidence-based ETA range, explain reasons for changes [1]\n- [ ] Review the end-to-end workflow: delay detection → live location → historical retrieval → impact estimation → ETA forecast → real-time recomputation → network cascade → notifications [1]\n- [ ] List the ML inputs and model type: live location, historical patterns, operational factors; HistGradientBoostingRegressor; confidence intervals [1]\n- [ ] Identify the tech stack components: Python, TensorFlow/Keras, Scikit-Learn, Docker, MongoDB, Kafka, FastAPI [1]\n- [ ] Assess feasibility factors: modular micro-services, API integration, cross-railway applicability, cloud/on-premise, scalability [1]\n- [ ] Evaluate viability benefits: improved passenger planning, lower operational costs, delay propagation prevention, freight/cargo gains [1]\n- [ ] Compare impact against \"Where is My Train\": focus, inputs, uncertainty handling, target users, operational value [1]\n- [ ] Reference the research basis: ML for delay prediction, RTIS, delay propagation, Indian Railways Year Book, data-driven forecasting links [1]",
+      "citations": "[{\"id\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"title\":\"PPT_SIH26028 (1).pdf\",\"kind\":\"source\"}]",
+      "created_at": "2026-10-25T15:14:22.264Z"
+    },
+    {
+      "id": "4fc39b2b-5da3-4873-9392-cb499144f7ae",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2,
+      "question": "can u give a short quiz for this",
+      "answer": "**Short Quiz: Dynamic ETA Forecasting for Coaching Trains (SIH26028)**  \n*All questions and answers are drawn strictly from the provided notebook context (`source:cjre8ylldciau0rt0rwo`).*\n\n1. What is the Problem Statement ID and title for this project?  \n2. Name three existing problems listed under the \"Problem Existing\" section.  \n3. List the four components of the proposed \"Dynamic ETA Solution.\"  \n4. According to the Unique Value Proposition (UVP), what does the system provide instead of a single exact ETA time?  \n5. Which ML model is explicitly named in the system workflow for ETA forecasting?  \n6. What mitigation is suggested for the risk that frequent ETA changes may reduce passenger trust?  \n\n***\n\n**Answers**  \n1. [1] Problem Statement ID: SIH26028 | Title: Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains  \n2. [1] 1. Static ETA: Scheduled timings do not change when the train gets delayed. 2. Uncertain Delays: Signals, traffic, speed limits and unexpected stops can change arrival times. 3. Delay Propagation: A delay at one station can cause delays at the stations ahead.  \n3. [1] 1. Dynamic ETA Engine: Continuously predicts arrival time using live train data and past train patterns. 2. Multi-Factor Prediction: Uses train location, current delay, travel time and operating conditions. 3. Station-Wise Forecasting: Predicts the updated arrival time for every upcoming station. 4. Continuous Updates: Automatically updates ETA whenever new train information is available.  \n4. [1] Confidence-Based ETA: Gives an expected time range instead of one exact time that may be wrong (also phrased as \"Predicts, Not Just Tracks\").  \n5. [1] HistGradientBoostingRegressor (explicitly listed under \"Data Processing ML Model\" in the System Workflow section).  \n6. [1] Display ETA updates with confidence ranges and explain the major reason behind significant changes.",
+      "citations": "[{\"id\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"title\":\"PPT_SIH26028 (1).pdf\",\"kind\":\"source\"}]",
+      "created_at": "2026-10-25T15:15:40.843Z"
+    },
+    {
+      "id": "7f57d54c-a45c-4135-81c2-2b2135063072",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2,
+      "question": "Summarise the key points in one short paragraph.",
+      "answer": "The project SIH26028 \"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\" (Ministry of Railways) introduces a machine-learning system that replaces static train ETAs with dynamic, station-wise predictions using live location, historical patterns, and operational data, providing confidence-based time ranges with explained reasons for changes. Its modular micro-service architecture integrates real-time data ingestion, ML forecasting models, and API compatibility with existing railway infrastructure, aiming to improve passenger planning, reduce delay propagation impacts, and deliver substantial operational and economic benefits across railway networks [1].",
+      "citations": "[{\"id\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"title\":\"PPT_SIH26028 (1).pdf\",\"kind\":\"source\"}]",
+      "created_at": "2026-10-26T18:02:49.843Z"
+    },
+    {
+      "id": "59937ba6-c4c0-46a0-ab7a-99620526d8d4",
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "user_id": 2,
+      "question": "tell me about this ML",
+      "answer": "Based on the supplied notebook context, the machine-learning component of the SMART INDIA HACKATHON project (SIH26028 – \"Dynamic Forecast of Expected Time of Arrival for Coaching Trains\") centers on predictive ETA modeling for railway operations. The system uses a multi-factor ML approach that ingests live train location, historical running patterns, travel time, and operational inputs (weather, congestion, junction status, speed/delay info) to generate station-wise, confidence-based ETA ranges rather than single predicted times. The tech stack includes Python, TensorFlow, Keras, Scikit-Learn, and specifically a `HistGradientBoostingRegressor` for the forecasting model. As noted in the research basis, machine-learning approaches are key to identifying railway delay patterns and improving predictive accuracy [1]. The system also distinguishes its confidence-aware ETA from typical passenger apps that typically show only a single expected arrival time.\n\nIf you need details on a specific model, data pipeline, or comparison with existing platforms, let me know—I can reference the relevant sections of the document.",
+      "citations": "[{\"id\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"title\":\"PPT_SIH26028 (1).pdf\",\"kind\":\"source\"}]",
+      "created_at": "2026-10-26T18:15:56.685Z"
+    }
+  ],
+  "study_flashcards": [],
+  "study_xp": [],
+  "study_feedback": [],
+  "exam_plans": [
+    {
+      "id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "user_id": 2,
+      "notebook_id": "88b22c43-5fd5-4c26-ab93-8e8bf367a146",
+      "revision": 1,
+      "data": "{\"blocks\":[{\"id\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:learn:0\",\"topicId\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4\",\"title\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"module\":\"SIH26028 Railway ETA Forecasting\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"learn\",\"priority\":2,\"minutes\":45,\"start\":\"2026-10-27T09:33:00.000Z\",\"end\":\"2026-10-27T10:18:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"0520a168-031e-4e2a-86a1-f9c87c6f7f41\"},{\"id\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:learn:1\",\"topicId\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4\",\"title\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"module\":\"SIH26028 Railway ETA Forecasting\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"learn\",\"priority\":2,\"minutes\":36,\"start\":\"2026-10-27T10:28:00.000Z\",\"end\":\"2026-10-27T11:04:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"a01ff097-4ed5-4216-8fd5-1cacdbca586a\"},{\"id\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:practice:0\",\"topicId\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4\",\"title\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"module\":\"SIH26028 Railway ETA Forecasting\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"practice\",\"priority\":2,\"minutes\":36,\"start\":\"2026-10-28T04:30:00.000Z\",\"end\":\"2026-10-28T05:06:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"fb953c31-5687-4edc-8c82-eab82fe39b4d\"},{\"id\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:recall:0\",\"topicId\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4\",\"title\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"module\":\"SIH26028 Railway ETA Forecasting\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"recall\",\"priority\":2,\"minutes\":18,\"start\":\"2026-10-28T05:16:00.000Z\",\"end\":\"2026-10-28T05:34:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"99815a91-213d-4e4e-85fb-e3d3ef7aaa0e\"},{\"id\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:revision:0\",\"topicId\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4\",\"title\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"module\":\"SIH26028 Railway ETA Forecasting\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"revision\",\"priority\":2,\"minutes\":27,\"start\":\"2026-10-28T05:44:00.000Z\",\"end\":\"2026-10-28T06:11:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"e1c2e76e-8d99-4f84-a7f6-5ce7e6d26ca6\"},{\"id\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:mock:0\",\"topicId\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4\",\"title\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"module\":\"SIH26028 Railway ETA Forecasting\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"mock\",\"priority\":2,\"minutes\":18,\"start\":\"2026-10-28T06:21:00.000Z\",\"end\":\"2026-10-28T06:39:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"166c959b-12d1-4dd0-843e-2482632ce3c2\"},{\"id\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:learn:0\",\"topicId\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c\",\"title\":\"Delay Propagation Across Railway Stations\",\"module\":\"Network Delay Propagation\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"learn\",\"priority\":2,\"minutes\":32,\"start\":\"2026-10-28T06:49:00.000Z\",\"end\":\"2026-10-28T07:21:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"f28b8652-ddd3-4872-8d24-7fabfd9d2e33\"},{\"id\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:practice:0\",\"topicId\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c\",\"title\":\"Delay Propagation Across Railway Stations\",\"module\":\"Network Delay Propagation\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"practice\",\"priority\":2,\"minutes\":27,\"start\":\"2026-10-28T07:31:00.000Z\",\"end\":\"2026-10-28T07:58:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"034d9516-1398-4bd5-aa9b-80f3ee5d7151\"},{\"id\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:recall:0\",\"topicId\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c\",\"title\":\"Delay Propagation Across Railway Stations\",\"module\":\"Network Delay Propagation\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"recall\",\"priority\":2,\"minutes\":9,\"start\":\"2026-10-28T08:08:00.000Z\",\"end\":\"2026-10-28T08:17:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"76923007-786b-40d2-93a6-59f7d4c91a01\"},{\"id\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:revision:0\",\"topicId\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c\",\"title\":\"Delay Propagation Across Railway Stations\",\"module\":\"Network Delay Propagation\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"revision\",\"priority\":2,\"minutes\":14,\"start\":\"2026-10-28T08:27:00.000Z\",\"end\":\"2026-10-28T08:41:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"eb632eb1-3d18-4e10-9d04-a4a916a40450\"},{\"id\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:mock:0\",\"topicId\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c\",\"title\":\"Delay Propagation Across Railway Stations\",\"module\":\"Network Delay Propagation\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"mock\",\"priority\":2,\"minutes\":9,\"start\":\"2026-10-28T08:51:00.000Z\",\"end\":\"2026-10-28T09:00:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"ecb44a03-5924-43d1-a5ff-c8ef13a7d081\"},{\"id\":\"b2a169c8-03ae-4ec6-b541-522e3223472e:learn:0\",\"topicId\":\"b2a169c8-03ae-4ec6-b541-522e3223472e\",\"title\":\"Multi-Factor ETA Prediction Using Live and Historical Data\",\"module\":\"Operational Condition Integration\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"learn\",\"priority\":2,\"minutes\":45,\"start\":\"2026-10-28T09:10:00.000Z\",\"end\":\"2026-10-28T09:55:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"479e33f5-76c7-4dbc-aaac-e3a6d93b093d\"},{\"id\":\"b2a169c8-03ae-4ec6-b541-522e3223472e:learn:1\",\"topicId\":\"b2a169c8-03ae-4ec6-b541-522e3223472e\",\"title\":\"Multi-Factor ETA Prediction Using Live and Historical Data\",\"module\":\"Operational Condition Integration\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"learn\",\"priority\":2,\"minutes\":23,\"start\":\"2026-10-28T10:05:00.000Z\",\"end\":\"2026-10-28T10:28:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"dd3dcbfa-eff8-4e73-9cff-a88242b752ce\"},{\"id\":\"b2a169c8-03ae-4ec6-b541-522e3223472e:practice:0\",\"topicId\":\"b2a169c8-03ae-4ec6-b541-522e3223472e\",\"title\":\"Multi-Factor ETA Prediction Using Live and Historical Data\",\"module\":\"Operational Condition Integration\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"practice\",\"priority\":2,\"minutes\":30,\"start\":\"2026-10-28T10:38:00.000Z\",\"end\":\"2026-10-28T11:08:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"789c1735-cb7b-483f-8fb8-d0b71fa4258c\"},{\"id\":\"b2a169c8-03ae-4ec6-b541-522e3223472e:recall:0\",\"topicId\":\"b2a169c8-03ae-4ec6-b541-522e3223472e\",\"title\":\"Multi-Factor ETA Prediction Using Live and Historical Data\",\"module\":\"Operational Condition Integration\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"recall\",\"priority\":2,\"minutes\":15,\"start\":\"2026-10-29T04:30:00.000Z\",\"end\":\"2026-10-29T04:45:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"8f22d9e6-15be-4d19-b77b-4dc5ec3d5b47\"},{\"id\":\"b2a169c8-03ae-4ec6-b541-522e3223472e:revision:0\",\"topicId\":\"b2a169c8-03ae-4ec6-b541-522e3223472e\",\"title\":\"Multi-Factor ETA Prediction Using Live and Historical Data\",\"module\":\"Operational Condition Integration\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"revision\",\"priority\":2,\"minutes\":23,\"start\":\"2026-10-29T04:55:00.000Z\",\"end\":\"2026-10-29T05:18:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"9657f3be-86c8-460a-82ac-da4788d62cac\"},{\"id\":\"b2a169c8-03ae-4ec6-b541-522e3223472e:mock:0\",\"topicId\":\"b2a169c8-03ae-4ec6-b541-522e3223472e\",\"title\":\"Multi-Factor ETA Prediction Using Live and Historical Data\",\"module\":\"Operational Condition Integration\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"mock\",\"priority\":2,\"minutes\":15,\"start\":\"2026-10-29T05:28:00.000Z\",\"end\":\"2026-10-29T05:43:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"5792b1e7-405a-4e73-b41c-eaed165fd59d\"},{\"id\":\"ebd6ac9c-fe24-439e-95cf-977857d43250:learn:0\",\"topicId\":\"ebd6ac9c-fe24-439e-95cf-977857d43250\",\"title\":\"Confidence-Based ETA with Time Ranges\",\"module\":\"Uncertainty Quantification\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"learn\",\"priority\":2,\"minutes\":41,\"start\":\"2026-10-29T05:53:00.000Z\",\"end\":\"2026-10-29T06:34:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"bceb8e55-8072-4a2b-aa36-404b8fee3f75\"},{\"id\":\"ebd6ac9c-fe24-439e-95cf-977857d43250:practice:0\",\"topicId\":\"ebd6ac9c-fe24-439e-95cf-977857d43250\",\"title\":\"Confidence-Based ETA with Time Ranges\",\"module\":\"Uncertainty Quantification\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"practice\",\"priority\":2,\"minutes\":18,\"start\":\"2026-10-29T06:44:00.000Z\",\"end\":\"2026-10-29T07:02:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"752899dd-fd35-4fff-b25b-18e4a6d45fb5\"},{\"id\":\"ebd6ac9c-fe24-439e-95cf-977857d43250:recall:0\",\"topicId\":\"ebd6ac9c-fe24-439e-95cf-977857d43250\",\"title\":\"Confidence-Based ETA with Time Ranges\",\"module\":\"Uncertainty Quantification\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"recall\",\"priority\":2,\"minutes\":9,\"start\":\"2026-10-29T07:12:00.000Z\",\"end\":\"2026-10-29T07:21:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"145d2c91-f2dc-4616-a713-fabf8b25c8ce\"},{\"id\":\"ebd6ac9c-fe24-439e-95cf-977857d43250:revision:0\",\"topicId\":\"ebd6ac9c-fe24-439e-95cf-977857d43250\",\"title\":\"Confidence-Based ETA with Time Ranges\",\"module\":\"Uncertainty Quantification\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"revision\",\"priority\":2,\"minutes\":14,\"start\":\"2026-10-29T07:31:00.000Z\",\"end\":\"2026-10-29T07:45:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"2c5496d7-ce8c-4dc8-a6d8-fed9067afa0c\"},{\"id\":\"ebd6ac9c-fe24-439e-95cf-977857d43250:mock:0\",\"topicId\":\"ebd6ac9c-fe24-439e-95cf-977857d43250\",\"title\":\"Confidence-Based ETA with Time Ranges\",\"module\":\"Uncertainty Quantification\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"activity\":\"mock\",\"priority\":2,\"minutes\":9,\"start\":\"2026-10-29T07:55:00.000Z\",\"end\":\"2026-10-29T08:04:00.000Z\",\"status\":\"scheduled\",\"taskId\":\"04c8de5b-7027-4ee2-b990-428ad59aec32\"}],\"uncovered\":[],\"estimatedMinutes\":513,\"scheduledMinutes\":513,\"explanation\":\"Approximate estimates. Topic order respects prerequisites; each topic includes learning, practice, recall and revision. Unplaced work remains visible. Availability protects 22:00–07:00 rest and an eight-hour daily maximum.\",\"id\":\"ccf1331d-77fa-4666-8969-4c3efb388157\",\"setup\":{\"name\":\"compiler\",\"examAt\":\"2026-10-30T09:00\",\"timezone\":\"Asia/Calcutta\",\"strategy\":\"balanced\",\"sessionMinutes\":45,\"breakMinutes\":10,\"travelMinutes\":60,\"style\":\"Worked examples\",\"goal\":\"\",\"reminders\":false,\"topics\":[{\"id\":\"6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4\",\"title\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"module\":\"SIH26028 Railway ETA Forecasting\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"quote\":\"Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains\",\"minutes\":180,\"priority\":2,\"kind\":\"concept\",\"prerequisites\":[]},{\"id\":\"c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c\",\"title\":\"Delay Propagation Across Railway Stations\",\"module\":\"Network Delay Propagation\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"quote\":\"Delay Propagation: A delay at one station can cause delays at the stations ahead.\",\"minutes\":90,\"priority\":2,\"kind\":\"problem\",\"prerequisites\":[]},{\"id\":\"b2a169c8-03ae-4ec6-b541-522e3223472e\",\"title\":\"Multi-Factor ETA Prediction Using Live and Historical Data\",\"module\":\"Operational Condition Integration\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"quote\":\"Multi-Factor Prediction: Uses train location, current delay, travel time and operating conditions.\",\"minutes\":150,\"priority\":2,\"kind\":\"concept\",\"prerequisites\":[]},{\"id\":\"ebd6ac9c-fe24-439e-95cf-977857d43250\",\"title\":\"Confidence-Based ETA with Time Ranges\",\"module\":\"Uncertainty Quantification\",\"sourceId\":\"06aabacf-621a-42f7-9612-a75dd87d850d\",\"quote\":\"Confidence-Based ETA: Gives an expected time range instead of one exact time that may be wrong.\",\"minutes\":90,\"priority\":2,\"kind\":\"definition\",\"prerequisites\":[]}],\"availability\":[{\"date\":\"2026-10-27\",\"start\":\"10:00\",\"end\":\"17:00\",\"maxHours\":5},{\"date\":\"2026-10-28\",\"start\":\"10:00\",\"end\":\"17:00\",\"maxHours\":5},{\"date\":\"2026-10-29\",\"start\":\"10:00\",\"end\":\"17:00\",\"maxHours\":5}]},\"retired\":[],\"examTimestamp\":1793331000000,\"revision\":1,\"commitments\":[],\"reason\":\"New plan based on reviewed topics and availability.\",\"changes\":[]}"
+    }
+  ],
+  "exam_previews": [],
+  "exam_task_links": [
+    {
+      "task_id": "0520a168-031e-4e2a-86a1-f9c87c6f7f41",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:learn:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "a01ff097-4ed5-4216-8fd5-1cacdbca586a",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:learn:1",
+      "user_id": 2
+    },
+    {
+      "task_id": "fb953c31-5687-4edc-8c82-eab82fe39b4d",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:practice:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "99815a91-213d-4e4e-85fb-e3d3ef7aaa0e",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:recall:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "e1c2e76e-8d99-4f84-a7f6-5ce7e6d26ca6",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:revision:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "166c959b-12d1-4dd0-843e-2482632ce3c2",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "6e0e00cb-345b-4eb7-8c96-ffa8bacbd6b4:mock:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "f28b8652-ddd3-4872-8d24-7fabfd9d2e33",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:learn:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "034d9516-1398-4bd5-aa9b-80f3ee5d7151",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:practice:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "76923007-786b-40d2-93a6-59f7d4c91a01",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:recall:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "eb632eb1-3d18-4e10-9d04-a4a916a40450",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:revision:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "ecb44a03-5924-43d1-a5ff-c8ef13a7d081",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "c28a2ce8-f2ca-4cf7-8f65-13dc672ed36c:mock:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "479e33f5-76c7-4dbc-aaac-e3a6d93b093d",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "b2a169c8-03ae-4ec6-b541-522e3223472e:learn:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "dd3dcbfa-eff8-4e73-9cff-a88242b752ce",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "b2a169c8-03ae-4ec6-b541-522e3223472e:learn:1",
+      "user_id": 2
+    },
+    {
+      "task_id": "789c1735-cb7b-483f-8fb8-d0b71fa4258c",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "b2a169c8-03ae-4ec6-b541-522e3223472e:practice:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "8f22d9e6-15be-4d19-b77b-4dc5ec3d5b47",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "b2a169c8-03ae-4ec6-b541-522e3223472e:recall:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "9657f3be-86c8-460a-82ac-da4788d62cac",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "b2a169c8-03ae-4ec6-b541-522e3223472e:revision:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "5792b1e7-405a-4e73-b41c-eaed165fd59d",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "b2a169c8-03ae-4ec6-b541-522e3223472e:mock:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "bceb8e55-8072-4a2b-aa36-404b8fee3f75",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "ebd6ac9c-fe24-439e-95cf-977857d43250:learn:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "752899dd-fd35-4fff-b25b-18e4a6d45fb5",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "ebd6ac9c-fe24-439e-95cf-977857d43250:practice:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "145d2c91-f2dc-4616-a713-fabf8b25c8ce",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "ebd6ac9c-fe24-439e-95cf-977857d43250:recall:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "2c5496d7-ce8c-4dc8-a6d8-fed9067afa0c",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "ebd6ac9c-fe24-439e-95cf-977857d43250:revision:0",
+      "user_id": 2
+    },
+    {
+      "task_id": "04c8de5b-7027-4ee2-b990-428ad59aec32",
+      "plan_id": "ccf1331d-77fa-4666-8969-4c3efb388157",
+      "block_id": "ebd6ac9c-fe24-439e-95cf-977857d43250:mock:0",
+      "user_id": 2
+    }
+  ],
+  "study_quiz_results": [],
+  "schedule_tasks": [
+    {
+      "id": "2273f3e3-4992-48b8-a9a8-c9f4397787ef",
+      "user_id": 2,
+      "title": "doing YT animations",
+      "due_at": "2026-10-25T12:30:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 1,
+      "completed_at": "2026-10-25T14:56:13.844Z",
+      "reward": "{\"title\":\"Spider-Man: Into the Spider-Verse\",\"url\":\"https://www.youtube.com/results?search_query=Spider-Man%3A%20Into%20the%20Spider-Verse%20official%20trailer\"}",
+      "created_at": "2026-10-25T10:53:58.012Z"
+    },
+    {
+      "id": "fb953c31-5687-4edc-8c82-eab82fe39b4d",
+      "user_id": 2,
+      "title": "practice: Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains",
+      "due_at": "2026-10-28T04:30:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.920Z"
+    },
+    {
+      "id": "99815a91-213d-4e4e-85fb-e3d3ef7aaa0e",
+      "user_id": 2,
+      "title": "recall: Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains",
+      "due_at": "2026-10-28T05:16:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.920Z"
+    },
+    {
+      "id": "e1c2e76e-8d99-4f84-a7f6-5ce7e6d26ca6",
+      "user_id": 2,
+      "title": "revision: Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains",
+      "due_at": "2026-10-28T05:44:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.921Z"
+    },
+    {
+      "id": "166c959b-12d1-4dd0-843e-2482632ce3c2",
+      "user_id": 2,
+      "title": "mock: Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains",
+      "due_at": "2026-10-28T06:21:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.921Z"
+    },
+    {
+      "id": "f28b8652-ddd3-4872-8d24-7fabfd9d2e33",
+      "user_id": 2,
+      "title": "learn: Delay Propagation Across Railway Stations",
+      "due_at": "2026-10-28T06:49:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.922Z"
+    },
+    {
+      "id": "034d9516-1398-4bd5-aa9b-80f3ee5d7151",
+      "user_id": 2,
+      "title": "practice: Delay Propagation Across Railway Stations",
+      "due_at": "2026-10-28T07:31:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.922Z"
+    },
+    {
+      "id": "76923007-786b-40d2-93a6-59f7d4c91a01",
+      "user_id": 2,
+      "title": "recall: Delay Propagation Across Railway Stations",
+      "due_at": "2026-10-28T08:08:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.923Z"
+    },
+    {
+      "id": "eb632eb1-3d18-4e10-9d04-a4a916a40450",
+      "user_id": 2,
+      "title": "revision: Delay Propagation Across Railway Stations",
+      "due_at": "2026-10-28T08:27:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.924Z"
+    },
+    {
+      "id": "ecb44a03-5924-43d1-a5ff-c8ef13a7d081",
+      "user_id": 2,
+      "title": "mock: Delay Propagation Across Railway Stations",
+      "due_at": "2026-10-28T08:51:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.924Z"
+    },
+    {
+      "id": "479e33f5-76c7-4dbc-aaac-e3a6d93b093d",
+      "user_id": 2,
+      "title": "learn: Multi-Factor ETA Prediction Using Live and Historical Data",
+      "due_at": "2026-10-28T09:10:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.925Z"
+    },
+    {
+      "id": "dd3dcbfa-eff8-4e73-9cff-a88242b752ce",
+      "user_id": 2,
+      "title": "learn: Multi-Factor ETA Prediction Using Live and Historical Data",
+      "due_at": "2026-10-28T10:05:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.926Z"
+    },
+    {
+      "id": "789c1735-cb7b-483f-8fb8-d0b71fa4258c",
+      "user_id": 2,
+      "title": "practice: Multi-Factor ETA Prediction Using Live and Historical Data",
+      "due_at": "2026-10-28T10:38:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.927Z"
+    },
+    {
+      "id": "8f22d9e6-15be-4d19-b77b-4dc5ec3d5b47",
+      "user_id": 2,
+      "title": "recall: Multi-Factor ETA Prediction Using Live and Historical Data",
+      "due_at": "2026-10-29T04:30:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.928Z"
+    },
+    {
+      "id": "9657f3be-86c8-460a-82ac-da4788d62cac",
+      "user_id": 2,
+      "title": "revision: Multi-Factor ETA Prediction Using Live and Historical Data",
+      "due_at": "2026-10-29T04:55:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.928Z"
+    },
+    {
+      "id": "5792b1e7-405a-4e73-b41c-eaed165fd59d",
+      "user_id": 2,
+      "title": "mock: Multi-Factor ETA Prediction Using Live and Historical Data",
+      "due_at": "2026-10-29T05:28:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.930Z"
+    },
+    {
+      "id": "bceb8e55-8072-4a2b-aa36-404b8fee3f75",
+      "user_id": 2,
+      "title": "learn: Confidence-Based ETA with Time Ranges",
+      "due_at": "2026-10-29T05:53:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.930Z"
+    },
+    {
+      "id": "752899dd-fd35-4fff-b25b-18e4a6d45fb5",
+      "user_id": 2,
+      "title": "practice: Confidence-Based ETA with Time Ranges",
+      "due_at": "2026-10-29T06:44:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.931Z"
+    },
+    {
+      "id": "145d2c91-f2dc-4616-a713-fabf8b25c8ce",
+      "user_id": 2,
+      "title": "recall: Confidence-Based ETA with Time Ranges",
+      "due_at": "2026-10-29T07:12:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.932Z"
+    },
+    {
+      "id": "2c5496d7-ce8c-4dc8-a6d8-fed9067afa0c",
+      "user_id": 2,
+      "title": "revision: Confidence-Based ETA with Time Ranges",
+      "due_at": "2026-10-29T07:31:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.933Z"
+    },
+    {
+      "id": "04c8de5b-7027-4ee2-b990-428ad59aec32",
+      "user_id": 2,
+      "title": "mock: Confidence-Based ETA with Time Ranges",
+      "due_at": "2026-10-29T07:55:00.000Z",
+      "timezone": "Asia/Calcutta",
+      "completed": 0,
+      "completed_at": null,
+      "reward": null,
+      "created_at": "2026-10-27T09:27:46.933Z"
+    }
+  ]
+}
