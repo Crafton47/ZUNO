@@ -210,7 +210,11 @@ Critical recovery: the user asked to add a task but no add_tasks call saved anyt
     }
     const isLivePath = url.pathname === '/api/companion/live' || url.pathname.endsWith('/live') || (url.pathname.startsWith('/api') && Boolean(entry));
     if (!isLivePath || !sameOrigin || !entry || (entry.expires && entry.expires < Date.now()) || active.has(entry.user.id) || chats.has(entry.user.id)) {
-      socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n'); socket.destroy(); return;
+      const reason = !isLivePath ? 'path' : !sameOrigin ? 'origin' : !entry ? 'ticket' : (entry.expires && entry.expires < Date.now()) ? 'expired' : active.has(entry.user.id) ? 'active' : 'chat';
+      console.error('[UPGRADE REJECT]', reason, { pathname: url.pathname, origin: req.headers.origin, host: req.headers.host, ticketLen: ticket ? ticket.length : 0 });
+      socket.write(`HTTP/1.1 401 Unauthorized\r\nX-Reject-Reason: ${reason}\r\nConnection: close\r\n\r\n`);
+      socket.destroy();
+      return;
     }
     active.add(entry.user.id);
     wss.handleUpgrade(req, socket, head, ws => connect(ws, entry));
