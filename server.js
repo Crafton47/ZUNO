@@ -17,8 +17,28 @@ const EXPIRES = process.env.JWT_EXPIRES_IN || '7d';
 
 const SALT_ROUNDS = 12;
 
+let dummyPasswordHash;
+let initPromise = null;
+async function ensureInit() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      dummyPasswordHash = await bcrypt.hash(require('crypto').randomBytes(32).toString('hex'), SALT_ROUNDS);
+      await db.init();
+    })();
+  }
+  return initPromise;
+}
+
 // ── Middleware ─────────────────────────────────────────────────
 app.disable('x-powered-by');
+app.use(async (req, res, next) => {
+  try {
+    await ensureInit();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 app.use(express.json({ limit: '100kb' }));
 app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 app.use((req, res, next) => {
@@ -198,27 +218,6 @@ app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
   const status = Number(error?.status);
   res.status(status >= 400 && status < 600 ? status : 500).json({ error: 'Something went wrong. Please retry.' });
-});
-
-let dummyPasswordHash;
-let initPromise = null;
-async function ensureInit() {
-  if (!initPromise) {
-    initPromise = (async () => {
-      dummyPasswordHash = await bcrypt.hash(require('crypto').randomBytes(32).toString('hex'), SALT_ROUNDS);
-      await db.init();
-    })();
-  }
-  return initPromise;
-}
-
-app.use(async (req, res, next) => {
-  try {
-    await ensureInit();
-    next();
-  } catch (err) {
-    next(err);
-  }
 });
 
 async function startServer() {
