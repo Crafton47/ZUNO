@@ -525,7 +525,7 @@
           <div class="input-wrap">
             <span class="input-icon" aria-hidden="true">🔒</span>
             <input type="password" id="password" name="password"
-                   placeholder="Min 6 characters" autocomplete="new-password" required />
+                   placeholder="Min 12 characters" autocomplete="new-password" required />
             <button type="button" class="toggle-pass" id="toggle-pass1" aria-label="Toggle password">👁</button>
           </div>
           <div class="strength-bar-wrap">
@@ -703,8 +703,8 @@
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return showError('Please enter a valid email address.');
       }
-      if (password.length < 6) {
-        return showError('Password must be at least 6 characters.');
+      if (password.length < 12 || new TextEncoder().encode(password).length > 72) {
+        return showError('Password must be at least 12 characters and at most 72 UTF-8 bytes.');
       }
       if (password !== confirm) {
         return showError('Passwords do not match.');

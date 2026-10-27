@@ -106,3 +106,22 @@ New: `study.js`, `study.html`, `public/study.js`, `public/study.css`, `public/ma
 Updated: `database.js`, `server.js`, `companion.js`, `scheduler.js`, `index.html`, `public/companion.js`, `public/playcore.js`, `public/scheduler.js`, `package.json`, `.gitignore`, `.env.example`, README and architecture guide. Private `.env` and ignored `deploy/.env` were configured locally, never staged.
 
 Repair branch: `playcore-repair`. Pre-repair code checkpoint: `af42fad`; original pre-PLAYCORE tag: `pre-playcore-2`. Code rollback should use a separate worktree/branch after preserving current work. Do not roll back or overwrite the existing user database merely to revert UI code; new tables are additive.
+
+## Follow-up: chat task reliability (26 October 2026)
+
+Reported: tasks asked for in chat were sometimes not saved, deadlines landed on the wrong day, and replies occasionally failed or the server stopped.
+
+Cause: small chat models answer "done, I added it" without calling a tool, or send a natural-language deadline (`tomorrow at 6pm`) that the old ISO-only validator rejected. `tomorrow` was also being interpreted against end-of-day rather than the user's zone, and a provider hiccup or a locked database file surfaced as a failed reply.
+
+Changes:
+
+- `scheduler.js` resolves deadlines on the server in the user's timezone. It accepts ISO 8601 with or without an offset plus English/Hinglish phrases (`tomorrow`, `kal`, `parso`, `tonight`, `Friday`, `next Monday`, `30 October`, `30/10`, `in 2 hours`, `5 baje`, `shaam/subah/raat`, `6pm`, `18:00`). Tools now take `when` (the user's own words) instead of making the model do date arithmetic.
+- `chat-provider.js` adds a forced `add_tasks` round when the user asks to add something, 45 s timeouts, transient retry for timeouts/429/5xx, and response-shape validation.
+- `companion.js` tracks real tool results. If the reply claims a save but nothing was stored, it retries once with a forced `add_tasks`; if that also fails it states honestly that nothing was added. Confirmations list the actual stored title and deadline. A deadline the model invented is dropped when the user never mentioned a time.
+- `database.js` writes through a temp file with retry (the database lives in a synced folder where the file can be briefly locked) and rolls back safely.
+- `server.js` logs stray rejected promises instead of letting them terminate the process and returns JSON errors for API failures.
+- `public/radio.js` opens the in-dashboard Study shell even when no playlist is loaded.
+
+Verification: `npm test` covers natural-language deadlines, a false "done" reply that must be recovered, an unsavable task that must report failure, forced-tool mapping, transient retry, ISO-without-offset, timezone persistence and the existing browser/voice/planner/Radio suites. Study Studio was re-verified against the running services: status, notebook list, completed PDF source and a grounded model answer with citations.
+
+Study Studio needs Docker Desktop running. Both Compose services use `restart: unless-stopped`, so they return automatically once Docker starts; `npm run study:setup` and `npm run study:model` are only needed for a fresh machine or a new model.

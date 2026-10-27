@@ -91,7 +91,7 @@
       const title = document.createElement('strong'); title.textContent = item.title;
       const time = document.createElement('small'); const isOverdue = !item.completed && new Date(item.due_at) < new Date(); time.textContent = (isOverdue ? 'Overdue · ' : '') + dateLabel(item.due_at); if (isOverdue) time.className = 'task-overdue'; text.append(title, time);
       const controls = document.createElement('div'); controls.className = 'task-controls';
-      if (item.notebook_id) controls.append(button('Notebook', () => { location.href = '/study?notebook=' + encodeURIComponent(item.notebook_id); }, 'Open notebook for ' + item.title));
+      if (item.notebook_id) controls.append(button(item.exam_plan_id ? 'Start studying' : 'Notebook', () => { location.href = '/study?notebook=' + encodeURIComponent(item.notebook_id) + (item.exam_plan_id ? '&section=rescue&topic='+encodeURIComponent(item.exam_topic||item.title) : ''); }, 'Open notebook for ' + item.title));
       if (item.completed && item.reward) controls.append(button('Gift', () => reward(item), 'Movie reward for ' + item.title));
       controls.append(button('Edit', () => openEditor(item), 'Edit ' + item.title));
       controls.append(button('×', async event => {

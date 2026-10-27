@@ -1,13 +1,374 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Study Studio · ZUNO</title><link rel="icon" href="/assets/brand/zuno-logo.jpeg"><link rel="stylesheet" href="/assets/study.css"><script src="/assets/study.js" defer></script></head>
-<body><header><a class="brand" href="/chat">ZUNO <small>PLAYCORE</small></a><nav><a href="/chat">Companion & planner</a><button id="mode-toggle">Focus mode</button></nav></header>
-<main><div class="studio-heading"><div><p class="eyebrow">YOUR NOTES. BIG IDEAS.</p><h1>Study Studio<span>✦</span></h1><p>Make room for your next “oh, I get it.”</p></div><button id="new-notebook" class="primary">+ Create notebook</button></div>
-<p id="connection" role="status">Connecting to your study space…</p><p id="error" role="alert" hidden></p><button id="retry" hidden>Retry connection</button>
-<section id="home"><h2>My notebooks</h2><p>Most recently opened first. Your study material stays in this local workspace.</p><div id="notebooks" class="notebook-grid"></div></section>
-<section id="workspace" hidden><div class="workspace-heading"><button id="back">← My notebooks</button><h2 id="notebook-name" tabindex="-1"></h2><button id="rename">Rename</button><button id="delete" class="danger">Delete notebook</button></div>
-<div class="workspace-grid"><aside><h3>Your material</h3><form id="upload-form"><label for="document">PDF, TXT or Markdown · up to 15 MB</label><input id="document" type="file" accept=".pdf,.txt,.md" required><button type="submit">Upload material</button><progress id="upload-progress" max="100" value="0" hidden aria-label="File upload progress"></progress><p id="upload-status" role="status"></p></form><p class="muted">Text-based PDFs supported. Scanned pages may need OCR outside this app.</p><label for="source-filter">Find a source or note</label><input id="source-filter" type="search" placeholder="Search titles and extracted text"><div id="sources"></div><button id="refresh-sources">Refresh processing status</button><button id="new-note">+ Save a note</button><hr><h3>A small study mission</h3><form id="task-form"><label for="task-title">What will you revise?</label><input id="task-title" maxlength="240" required placeholder="Revise normalization"><label for="task-due">Deadline (your local time)</label><input id="task-due" type="datetime-local" required><button type="submit">Add to my planner</button><p id="task-status" role="status"></p></form><div id="linked-tasks"></div></aside>
-<article class="learning"><div class="learning-heading"><h3>Ask your material</h3><button id="summarize">Summarize notebook</button></div><p class="muted">Answers use this notebook’s extracted text and notes. References let you inspect the source; they do not guarantee every claim is correct.</p><div id="answers" aria-live="polite"></div><form id="question-form"><label for="question">Your question</label><textarea id="question" rows="3" maxlength="4000" required placeholder="Explain normalization from my notes…"></textarea><button class="primary" type="submit">Ask ZUNO ↗</button><p id="question-status" role="status"></p></form></article></div></section>
-</main><dialog id="edit-dialog"><form id="edit-form"><h2 id="edit-heading"></h2><label for="edit-name">Name</label><input id="edit-name" maxlength="150" required><div id="note-body" hidden><label for="note-content">Note content</label><textarea id="note-content" rows="9" maxlength="20000"></textarea></div><p id="edit-error" role="alert"></p><div class="actions"><button id="edit-cancel" type="button">Cancel</button><button class="primary" type="submit">Save</button></div></form></dialog>
-<dialog id="source-dialog"><button id="source-close" autofocus>Close</button><h2 id="source-title"></h2><pre id="source-text"></pre></dialog>
-<dialog id="delete-dialog"><h2>Delete this notebook?</h2><p>Its notes, documents and study chat will be deleted. Tasks already saved in your planner will remain.</p><p id="delete-error" role="alert"></p><div class="actions"><button id="delete-cancel">Keep notebook</button><button id="delete-confirm" class="danger">Delete notebook and material</button></div></dialog>
-<footer>Powered by Open Notebook 1.15.0 · Local single-owner preview · <a href="https://github.com/lfnovo/open-notebook" target="_blank" rel="noopener noreferrer">Open source / MIT</a></footer></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Study Studio · ZUNO</title>
+  <link rel="icon" href="/assets/brand/zuno-logo.jpeg">
+  <link rel="stylesheet" href="/assets/study.css">
+  <script src="/assets/study.js" defer></script>
+  <link rel="stylesheet" href="/assets/study-playcore.css">
+  <link rel="stylesheet" href="/assets/mascot.css">
+  <script src="/assets/mascot.js" defer></script>
+  <script src="/assets/exam-rescue.js" defer></script>
+  <link rel="stylesheet" href="/assets/study-motion.css">
+  <link rel="stylesheet" href="/assets/radio.css?v=20261026d">
+  <script src="/assets/radio.js?v=20261026d" defer></script>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="/chat">ZUNO <small>PLAYCORE</small></a>
+  <nav>
+    <a href="/chat#zuno-radio">♫ ZUNO Radio</a>
+    <a href="/chat">Companion &amp; planner</a>
+    <button id="mode-toggle" aria-pressed="false">Focus mode</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ── Hero ────────────────────────────────────────────────────────── -->
+  <div class="studio-heading">
+    <div>
+      <p class="eyebrow">YOUR NOTES. BIG IDEAS.</p>
+      <h1>Study Studio<span>✦</span></h1>
+      <p>Make room for your next "oh, I get it."</p>
+    </div>
+    <button id="new-notebook" class="btn-lime">+ Create notebook</button>
+  </div>
+
+  <p id="connection" role="status">Connecting to your study space…</p>
+  <nav class="studio-sections" aria-label="Study sections">
+    <button type="button" data-section="notebooks" aria-pressed="true">▦ My Notebooks</button>
+    <button type="button" data-section="ask" aria-pressed="false">↗ Ask ZUNO</button>
+    <button type="button" data-section="practice" aria-pressed="false">✧ Practice Lab</button>
+    <button type="button" data-section="rescue" aria-pressed="false">◷ Exam Rescue</button>
+  </nav>
+  <p id="section-hint" role="status" hidden>Open a notebook below to use this section.</p>
+  <section id="study-picker" hidden aria-labelledby="picker-title">
+    <p class="eyebrow">YOUR NEXT LIGHTBULB MOMENT</p><h2 id="picker-title" tabindex="-1">Ask ZUNO</h2><p id="picker-copy">Choose the material you want to work with.</p>
+    <div class="picker-actions"><button type="button" id="picker-create" class="btn-primary">+ Create notebook</button><button type="button" id="picker-upload">↑ Upload material</button><button type="button" id="picker-summary">✦ Summarize a notebook</button></div>
+    <p id="picker-status" role="status"></p><div id="picker-notebooks" class="notebook-grid"></div>
+  </section>
+  <p id="error" role="alert" hidden></p>
+  <button id="retry" hidden>Retry connection</button>
+
+  <!-- ── Notebooks home ───────────────────────────────────────────────── -->
+  <section id="home">
+    <h2>My notebooks</h2>
+    <p>Most recently opened first. Your study material stays in this local workspace.</p>
+    <div id="notebooks" class="notebook-grid"></div>
+  </section>
+
+  <!-- ── Workspace ────────────────────────────────────────────────────── -->
+
+  <section id="rescue-panel" hidden aria-labelledby="rescue-title">
+    <div class="rescue-hero">
+      <div class="rescue-hero-copy"><p class="eyebrow"><span class="live-dot"></span> EXAM RESCUE / YOUR COMEBACK STARTS HERE</p><h2 id="rescue-title">Exam in 3 days?<br>Let's make a <em>comeback.</em></h2><p>Drop your notes. Tell me when.<br>I'll handle the planning.</p><button id="rescue-start" class="btn-primary hero-cta" type="button">Build my study plan <span aria-hidden="true">?</span></button><div class="rescue-pills"><span>? Your real notes</span><span>? Your actual free time</span><span>? One doable next step</span></div></div>
+      <div class="rescue-art"><span class="orbit-caption caption-top">YOU'VE GOT THIS.</span><div class="rescue-mascot zuno-mascot" data-zuno-character data-mascot-state="idle"></div><span class="orbit-caption caption-bottom">LESS PANIC. MORE PROGRESS.</span><span class="hero-star star-one" aria-hidden="true">?</span><span class="hero-star star-two" aria-hidden="true">?</span></div>
+    </div>
+    <div id="rescue-saved-home" hidden><h3>Pick up where you left off</h3><div id="rescue-saved-cards" class="notebook-grid"></div></div>
+    <p id="rescue-status" role="status" aria-live="polite"></p><button id="rescue-retry" type="button" hidden>Try that again ?</button>
+    <div class="rescue-toolbar"><div id="rescue-plans-label" class="rescue-select-wrap"><label for="rescue-plans" class="rescue-select-title">Your exams</label><div class="rescue-select-custom"><select id="rescue-plans" aria-label="Switch between your exams"><option value="">+ New exam plan</option></select><span class="rescue-select-arrow" aria-hidden="true">▾</span></div></div><button id="rescue-new" type="button">+ New exam</button><button id="rescue-refresh" type="button">Refresh progress</button><button id="rescue-edit" type="button" hidden>Edit plan</button></div>
+    <details id="rescue-setup" hidden open><summary>Edit your plan</summary>
+      <nav class="wizard-steps" aria-label="Plan setup steps"><button type="button" data-wizard-step="1" aria-current="step"><span>01</span> The exam</button><button type="button" data-wizard-step="2"><span>02</span> The material</button><button type="button" data-wizard-step="3"><span>03</span> Your time</button></nav>
+      <!-- Uploads and the planner submit independently; forms must remain siblings. -->
+        <section class="wizard-pane" data-wizard-pane="1"><p class="eyebrow">STEP 01 / SET THE SCENE</p><h3>What's the big exam?</h3><p>Two things to start. We'll figure out the rest together.</p><label for="rescue-name">What subject?</label><input id="rescue-name" required maxlength="150" placeholder="e.g. Database systems" autocomplete="off"><div class="quick-choices" aria-label="Exam date shortcuts"><button type="button" data-exam-days="1">Tomorrow</button><button type="button" data-exam-days="3">In 3 days</button><button type="button" data-exam-days="7">In a week</button><button type="button" id="rescue-pick-date">Pick a date</button></div><label for="rescue-exam">When does it start?</label><input id="rescue-exam" type="datetime-local" required><p class="timezone-hint">Times use <span id="rescue-zone-label"></span>. Change this in Advanced.</p></section>
+        <section class="wizard-pane" data-wizard-pane="2" hidden><p class="eyebrow">STEP 02 / BRING YOUR BRAIN FUEL</p><h3>Your notes do the talking.</h3><p>Pick a notebook, then choose the modules for this exam.</p><div id="rescue-library" class="notebook-grid"></div><button type="button" id="rescue-create-notebook">+ Create a notebook for this exam</button><p id="rescue-selected-notebook" role="status">No notebook selected yet.</p><div id="rescue-upload-host"></div><div id="rescue-sources"></div><button id="rescue-analyze" type="button">? Find topics in my notes</button><p id="rescue-analysis-status" role="status"></p><details id="rescue-topic-review"><summary>Review topics &amp; approximate study time <span id="rescue-topic-count"></span></summary><p>Check the source evidence. Adjust weak topics, estimates and prerequisites here.</p><div id="rescue-topics"></div><button id="rescue-manual" type="button">+ Enter a topic manually</button></details></section>
+        <section class="wizard-pane" data-wizard-pane="3" hidden><p class="eyebrow">STEP 03 / MAKE ROOM FOR YOU</p><h3>How much time can you actually study?</h3><p>Pick a starting point. Review the suggested windows below ? breaks and your planner commitments come first.</p><div class="quick-choices time-choices" aria-label="Daily study time"><button type="button" data-study-hours="2.5">2?3 hours <small>A little, consistently</small></button><button type="button" data-study-hours="5">4?6 hours <small>Room for a deep dive</small></button><button type="button" data-study-hours="7">7+ hours <small>Up to 8, with rest</small></button><button type="button" id="rescue-custom-time">Customize <small>Your day, your way</small></button></div><div id="rescue-days"></div><button id="rescue-add-day" type="button">+ Available day</button><p>These are suggestions, not assumed free time. Edit each day before building. Overnight rest stays protected.</p><details><summary>Your planner commitments</summary><p>Ordinary missions have deadlines only, so we suggest an editable one-hour busy window. Existing study sessions keep their exact times.</p><div id="rescue-commitments"></div></details><details id="rescue-advanced"><summary>Advanced ? planning style, timezone &amp; reminders</summary><div class="rescue-fields"><label>Timezone<input id="rescue-zone" required></label><label>Planning style<select id="rescue-strategy"><option value="balanced">Balanced ? a sustainable mix</option><option value="sprint">Exam Sprint ? essentials first</option><option value="deep">Deep Understanding ? more practice</option></select></label><label>Focus block (minutes)<input id="rescue-session" type="number" value="45" min="15" max="90" required></label><label>Break (minutes)<input id="rescue-break" type="number" value="10" min="5" max="30" required></label><label>Travel &amp; getting ready (minutes)<input id="rescue-travel" type="number" value="60" min="0" max="360" required></label><label>How you like to learn<select id="rescue-style"><option>Worked examples</option><option>Step-by-step explanations</option><option>Active recall</option></select></label><label>Anything you want to focus on?<input id="rescue-goal" maxlength="300" placeholder="Core definitions and problem solving"></label><label>Study reminders<select id="rescue-reminders"><option value="off">Off ? keep it calm</option><option value="on">On ? gentle planner nudges</option></select></label></div></details></section>
+      <form id="rescue-form" novalidate>
+        <div class="wizard-controls"><button id="rescue-prev" type="button">? Back</button><button id="rescue-next" class="btn-primary" type="button">Next: the material <span aria-hidden="true">?</span></button><button id="rescue-generate" class="btn-primary" type="submit" hidden>Build my timetable <span aria-hidden="true">?</span></button><button id="rescue-cancel-setup" type="button">Close setup</button></div>
+      </form>
+    </details>
+    <ol id="rescue-phases" class="generation-phases" hidden aria-label="Plan generation progress"><li data-phase="reading">Reading your modules</li><li data-phase="topics">Finding key topics</li><li data-phase="availability">Checking your free time</li><li data-phase="schedule">Building your schedule</li><li data-phase="ready">Your plan is ready</li></ol>
+    <div id="rescue-progress" aria-live="polite"></div>
+    <div class="rescue-toolbar"><button id="rescue-replan" type="button" hidden>I'm falling behind ? help me adjust</button><button id="rescue-view" type="button" aria-pressed="false" hidden>Daily checklist view</button></div>
+    <section id="rescue-preview" hidden><p class="eyebrow">YOUR COMEBACK, ON THE CALENDAR</p><h3>Here's what fits. You get the final say.</h3><p id="rescue-change"></p><button id="rescue-apply" class="btn-primary" type="button">Looks good ? save my missions ?</button><button id="rescue-discard" type="button">Keep editing</button></section>
+    <div id="rescue-timeline"></div><div id="rescue-uncovered"></div>
+  </section>
+  <section id="workspace" hidden>
+    <div class="workspace-heading">
+      <button id="back" class="btn-ghost">← My notebooks</button>
+      <h2 id="notebook-name" tabindex="-1"></h2>
+      <button id="rename" class="btn-ghost">Rename</button>
+      <button id="delete" class="btn-danger">Delete notebook</button>
+    </div>
+
+    <div class="workspace-grid">
+
+      <!-- ── Sidebar ──────────────────────────────────────────────────── -->
+      <aside>
+        <!-- XP Bar -->
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-head">
+            <span id="xp-level">Level 1</span>
+            <strong id="xp-total">0 XP</strong>
+          </div>
+          <div class="xp-bar"><div class="xp-bar-fill" id="xp-fill" style="width:0%"></div></div>
+        </div>
+
+        <h3>Your material</h3>
+        <form id="upload-form">
+          <label for="document">PDF, TXT or Markdown · up to 15 MB</label>
+          <input id="document" type="file" accept=".pdf,.txt,.md" required>
+          <button type="submit" class="btn-primary">Upload material</button>
+          <progress id="upload-progress" max="100" value="0" hidden aria-label="File upload progress"></progress>
+          <p id="upload-status"></p>
+        </form>
+        <p class="muted">Text-based PDFs supported. Scanned pages may need OCR outside this app.</p>
+
+        <label for="source-filter">Find a source or note</label>
+        <input id="source-filter" type="search" placeholder="Search titles and extracted text">
+        <div id="sources"></div>
+
+        <button id="refresh-sources" class="btn-ghost" style="width:100%;margin-top:8px">↻ Refresh processing status</button>
+        <button id="new-note" class="btn-ghost" style="width:100%;margin-top:4px">+ Save a note</button>
+
+        <hr>
+
+        <h3>A small study mission</h3>
+        <form id="task-form">
+          <label for="task-title">What will you revise?</label>
+          <input id="task-title" maxlength="240" required placeholder="Revise normalization">
+          <label for="task-due">Deadline (your local time)</label>
+          <input id="task-due" type="datetime-local" required>
+          <button type="submit" class="btn-primary">Add to my planner</button>
+          <p id="task-status" role="status"></p>
+        </form>
+        <div id="linked-tasks"></div>
+      </aside>
+
+      <!-- ── Learning panel ───────────────────────────────────────────── -->
+      <article class="learning">
+
+        <div class="learning-heading">
+          <h3>Ask your material</h3>
+          <button id="summarize" class="btn-ghost" type="button">✦ Summarize notebook</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="learning-tabs" role="tablist">
+          <button class="tab-btn active" id="tab-ask" role="tab" aria-selected="true">💬 Ask</button>
+          <button class="tab-btn" id="tab-exam" role="tab" aria-selected="false">📝 Exam Mode</button>
+          <button class="tab-btn" id="tab-quiz" role="tab" aria-selected="false">🎯 Quiz Me</button>
+          <button class="tab-btn" id="tab-flashcards" role="tab" aria-selected="false">🃏 Flashcards</button>
+        </div>
+
+        <!-- ── Ask panel ──────────────────────────────────────────────── -->
+        <div id="ask-panel">
+          <p class="muted" style="margin-bottom:12px">Answers use this notebook's extracted text and notes. References let you inspect the source; they do not guarantee every claim is correct.</p>
+
+          <!-- Suggested prompts -->
+          <div class="prompt-chips" aria-label="Suggested questions">
+            <button class="prompt-chip" data-prompt="What are the key concepts in this notebook?" type="button">Key concepts</button>
+            <button class="prompt-chip" data-prompt="Explain the most important topic from a beginner's perspective." type="button">Beginner explanation</button>
+            <button class="prompt-chip" data-prompt="What are common mistakes or misconceptions related to this topic?" type="button">Common mistakes</button>
+            <button class="prompt-chip" data-prompt="Give me 3 real-world applications of the main concept." type="button">Real-world use</button>
+            <button class="prompt-chip" data-prompt="Compare and contrast the main ideas in this notebook." type="button">Compare ideas</button>
+          </div>
+
+          <div id="answers" aria-live="polite"></div>
+
+          <form id="question-form">
+            <label for="question">Your question</label>
+            <label for="answer-style">Response style</label><select id="answer-style"><option>Detailed Explanation</option><option>Explain Simply</option><option>Exam Answer</option><option>Quick Revision</option><option>Step-by-Step</option></select>
+            <div class="form-row">
+              <textarea id="question" rows="3" maxlength="4000" required placeholder="Explain normalization from my notes…"></textarea>
+              <div class="form-actions">
+                <button class="btn-primary" type="submit">Ask ZUNO ↗</button>
+              </div>
+            </div>
+            <p id="question-status" role="status"></p>
+          </form>
+        </div>
+
+        <!-- ── Exam Mode panel ────────────────────────────────────────── -->
+        <div id="exam-panel" hidden>
+          <p class="muted" style="margin-bottom:16px">Generate exam-ready answers grounded in your notebook. Choose the answer format before asking.</p>
+
+          <div class="exam-selector" aria-label="Exam answer type">
+            <button class="exam-chip" data-exam="3mark" type="button">3 Mark</button>
+            <button class="exam-chip selected" data-exam="5mark" type="button">5 Mark</button>
+            <button class="exam-chip" data-exam="10mark" type="button">10 Mark</button>
+            <button class="exam-chip" data-exam="revision" type="button">Revision Notes</button>
+            <button class="exam-chip" data-exam="detailed" type="button">Detailed</button>
+          </div>
+
+          <form id="exam-form">
+            <label for="exam-question">Your exam question or topic</label>
+            <textarea id="exam-question" rows="3" maxlength="4000" required placeholder="Explain the concept of database normalization…"></textarea>
+            <button class="btn-primary" type="submit">Generate Exam Answer ↗</button>
+            <p id="exam-status" role="status" style="margin-top:8px;font-size:13px;color:var(--muted)"></p>
+          </form>
+        </div>
+
+        <!-- ── Quiz Me panel ──────────────────────────────────────────── -->
+        <div id="quiz-panel" hidden>
+          <details class="short-answer"><summary>Short-answer practice · check your understanding</summary><form id="short-answer-form"><label for="short-question">Practice question</label><input id="short-question" required maxlength="500"><label for="short-answer">Your answer</label><textarea id="short-answer" rows="4" required maxlength="2500"></textarea><button type="submit">Review against my material</button></form><p>Feedback is grounded in your notebook. It is not an official exam grade.</p></details>
+          <p class="muted" style="margin-bottom:16px">Generate interactive quiz questions from your notebook material and test your understanding.</p>
+
+          <!-- Generate controls -->
+          <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+            <input id="quiz-topic" type="text" maxlength="500" placeholder="Optional: focus on a specific topic (e.g. Normalization, SQL joins)" style="flex:1;margin:0">
+            <button id="quiz-generate" class="btn-primary" type="button">Generate Quiz ↗</button>
+          </div>
+          <p id="quiz-status" role="status" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
+
+          <!-- Quiz empty / launch generator card -->
+          <div id="quiz-empty-state" class="empty-generator-card">
+            <div class="eg-icon">🎯</div>
+            <h4>Active Recall Quiz</h4>
+            <p>Generate 5 multiple-choice questions grounded in this notebook's uploaded documents and notes to test your mastery.</p>
+            <div class="eg-presets" aria-label="Quick quiz topics">
+              <span class="eg-label">Quick topics:</span>
+              <button class="quiz-preset-chip" data-topic="" type="button">✦ Everything in notebook</button>
+              <button class="quiz-preset-chip" data-topic="Key definitions and concepts" type="button">Key definitions</button>
+              <button class="quiz-preset-chip" data-topic="Important mechanisms and steps" type="button">Mechanisms &amp; steps</button>
+              <button class="quiz-preset-chip" data-topic="Exam questions and tricky points" type="button">Tricky exam points</button>
+            </div>
+            <button id="quiz-empty-generate" class="btn-primary" type="button">Generate 5-Question Quiz ↗</button>
+          </div>
+
+          <!-- Quiz progress -->
+          <div class="quiz-header" id="quiz-header" hidden>
+            <div class="quiz-progress" id="quiz-progress">Question 1 of 5</div>
+            <div class="quiz-bar"><div class="quiz-bar-fill" id="quiz-bar-fill" style="width:0%"></div></div>
+          </div>
+
+          <!-- Question card -->
+          <div id="quiz-card" hidden>
+            <div class="quiz-question-card">
+              <p class="quiz-question-text" id="quiz-question-text"></p>
+              <div class="quiz-options" id="quiz-options"></div>
+              <div class="quiz-explanation" id="quiz-explanation" hidden></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button id="quiz-next" class="btn-primary" type="button">Next →</button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="quiz-results-wrap" hidden>
+            <div class="quiz-results">
+              <div class="quiz-score-ring" id="quiz-score-display">0%</div>
+              <h3 id="quiz-score-msg">Great work!</h3>
+              <p id="quiz-score-detail"></p>
+              <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                <button id="quiz-retry" class="btn-primary" type="button">↺ Retry quiz</button>
+                <button type="button" class="btn-ghost" onclick="document.getElementById('tab-ask').click()">Back to Ask</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Flashcards panel ───────────────────────────────────────── -->
+        <div id="flashcard-panel" hidden>
+          <p class="muted" style="margin-bottom:16px">AI-generated flashcards from your notebook. Click a card to flip it. Mark Easy or Hard to track your progress.</p>
+
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+            <input id="fc-topic" type="text" maxlength="500" placeholder="Optional: focus on a specific topic (e.g. ACID properties, Normalization)" style="flex:1;margin:0">
+            <button id="fc-generate" class="btn-primary" type="button">Generate Flashcards ↗</button>
+            <button id="fc-load" class="btn-ghost" type="button">Load Saved</button>
+          </div>
+          <p id="fc-status" role="status" style="font-size:13px;color:var(--muted);margin-bottom:12px"></p>
+
+          <!-- Flashcards empty / launch generator card -->
+          <div id="fc-empty-state" class="empty-generator-card">
+            <div class="eg-icon">🃏</div>
+            <h4>Smart Study Flashcards</h4>
+            <p>Create interactive 3D flip cards to master key terms, definitions, and core concepts. Cards are saved to this notebook so you can review them anytime.</p>
+            <div class="eg-presets" aria-label="Preset flashcard topics">
+              <span class="eg-label">Quick decks:</span>
+              <button class="fc-preset-chip" data-topic="" type="button">✦ All material in notebook</button>
+              <button class="fc-preset-chip" data-topic="Key terms and definitions" type="button">Terms &amp; definitions</button>
+              <button class="fc-preset-chip" data-topic="Core principles and formulas" type="button">Core principles</button>
+              <button class="fc-preset-chip" data-topic="Summary review" type="button">Quick review</button>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+              <button id="fc-empty-generate" class="btn-primary" type="button">Generate 8 Flashcards ↗</button>
+              <button id="fc-empty-load" class="btn-ghost" type="button">Load Saved Cards ↻</button>
+            </div>
+          </div>
+
+          <!-- Flashcard viewer -->
+          <div class="fc-scene" id="fc-scene" style="display:none" role="button" tabindex="0" aria-label="Flashcard — click to flip">
+            <div class="fc-card" id="fc-card-inner">
+              <div class="fc-face fc-front">
+                <span class="fc-label">Question / Term</span>
+                <span class="fc-text" id="fc-front-text"></span>
+                <span class="fc-hint">Click to reveal answer →</span>
+              </div>
+              <div class="fc-face fc-back">
+                <span class="fc-label">Answer / Definition</span>
+                <span class="fc-text" id="fc-back-text"></span>
+              </div>
+            </div>
+          </div>
+
+          <p class="fc-count" id="fc-count"></p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span class="fc-diff new" id="fc-diff">new</span>
+          </div>
+
+          <div class="fc-actions" id="fc-actions" hidden>
+            <button id="fc-prev" class="btn-ghost" type="button">← Prev</button>
+            <button id="fc-easy" class="btn-lime" type="button">✓ Easy</button>
+            <button id="fc-hard" type="button" style="border-color:var(--pink);color:var(--pink)">Hard ✗</button>
+            <button id="fc-next" class="btn-ghost" type="button">Next →</button>
+          </div>
+
+          <!-- Saved list -->
+          <div id="fc-list" class="fc-list" style="margin-top:20px"></div>
+        </div>
+
+      </article>
+    </div><!-- workspace-grid -->
+  </section>
+
+</main>
+
+<!-- ── Edit dialog (create / rename / save note) ──────────────────────── -->
+<dialog id="edit-dialog">
+  <form id="edit-form">
+    <h2 id="edit-heading"></h2>
+    <label for="edit-name">Name</label>
+    <input id="edit-name" maxlength="150" required>
+    <div id="note-body" hidden>
+      <label for="note-content">Note content</label>
+      <textarea id="note-content" rows="9" maxlength="20000"></textarea>
+    </div>
+    <p id="edit-error" role="alert"></p>
+    <div class="dialog-actions">
+      <button id="edit-cancel" type="button" class="btn-ghost">Cancel</button>
+      <button class="btn-primary" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ── Source viewer dialog ──────────────────────────────────────────── -->
+<dialog id="source-dialog">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <h2 id="source-title" style="margin:0"></h2>
+    <button id="source-close" class="btn-ghost" autofocus>Close</button>
+  </div>
+  <pre id="source-text"></pre>
+</dialog>
+
+<!-- ── Delete dialog ────────────────────────────────────────────────── -->
+<dialog id="delete-dialog">
+  <h2>Delete this notebook?</h2>
+  <p>Its notes, documents and study chat will be deleted. Tasks already saved in your planner will remain.</p>
+  <p id="delete-error" role="alert"></p>
+  <div class="dialog-actions">
+    <button id="delete-cancel" class="btn-ghost">Keep notebook</button>
+    <button id="delete-confirm" class="btn-danger">Delete notebook and material</button>
+  </div>
+</dialog>
+
+<footer>
+  Powered by Open Notebook 1.15.0 · Local single-owner preview ·
+  <a href="https://github.com/lfnovo/open-notebook" target="_blank" rel="noopener noreferrer">Open source / MIT</a>
+</footer>
+
+</body>
+</html>

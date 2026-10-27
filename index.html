@@ -8,11 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/companion.css"><link rel="stylesheet" href="/assets/playcore.css"><link rel="icon" type="image/jpeg" href="/assets/brand/zuno-logo.jpeg"><script src="/assets/playcore.js" defer></script>
+  <link rel="stylesheet" href="/assets/companion.css"><link rel="stylesheet" href="/assets/playcore.css"><link rel="icon" type="image/jpeg" href="/assets/brand/zuno-logo.jpeg"><script src="/assets/playcore.js?v=20261026c" defer></script>
   <link rel="stylesheet" href="/assets/mascot.css"><script src="/assets/mascot.js" defer></script>
   <script src="/assets/mood.js" defer></script>
-  <script src="/assets/companion.js" defer></script>
+  <script src="/assets/companion.js?v=20261026c" defer></script>
   <script src="/assets/scheduler.js" defer></script>
+  <script src="/assets/exam-next.js" defer></script>
+  <link rel="stylesheet" href="/assets/radio.css?v=20261026d"><script src="/assets/radio.js?v=20261026d" defer></script>
 </head>
 <body>
   <aside class="sidebar">
@@ -32,6 +34,7 @@
       <a class="nav-item" href="#mood-studio" aria-label="Vibe check" title="Vibe check">
         <span class="nav-icon" aria-hidden="true">✦</span><span>Vibe check</span>
       </a>
+      <a class="nav-item" href="#zuno-radio"><span class="nav-icon" aria-hidden="true">♫</span><span>ZUNO Radio</span></a>
       <button class="nav-item" id="context-open" aria-label="About you" title="About you">
         <span class="nav-icon" aria-hidden="true">◇</span><span>About you</span>
       </button>
@@ -154,33 +157,24 @@
         </section>
 
         <section class="mood-studio" id="mood-studio" aria-labelledby="mood-title">
-          <div class="mood-heading">
-            <div>
-              <span class="eyebrow">DAILY MIX</span>
-              <h2 id="mood-title">What’s your mood today?</h2>
-            </div>
-            <span class="mix-sticker">curated for this moment ↗</span>
-          </div>
+          <span class="eyebrow">✦ VIBE CHECK</span>
+          <h2 id="mood-title">How are we feeling?</h2>
+          <p>A soundtrack for right now. A little inspiration for what’s next.</p>
           <div class="mood-chips" role="group" aria-label="Choose your mood">
-            <button data-mood="happy" aria-pressed="false">☀ On a high</button>
-            <button data-mood="sad" aria-pressed="false">☁ Feeling low</button>
-            <button data-mood="stressed" aria-pressed="false">〰 Overwhelmed</button>
-            <button data-mood="chill" aria-pressed="true">☾ Just chilling</button>
-            <button data-mood="energetic" aria-pressed="false">ϟ Need energy</button>
-            <button data-mood="focus" aria-pressed="false">◎ Locked in</button>
-            <button data-mood="bored" aria-pressed="false">✳ Bored</button>
-            <button data-mood="romantic" aria-pressed="false">♡ In my feels</button>
+            <button data-mood="hyped" aria-pressed="false">⚡ Hyped</button>
+            <button data-mood="chill" aria-pressed="true">🌙 Chill</button>
+            <button data-mood="low" aria-pressed="false">🌧️ Low</button>
+            <button data-mood="focus" aria-pressed="false">🎯 Focus</button>
+            <button data-mood="tired" aria-pressed="false">🪫 Tired</button>
+            <button data-mood="bored" aria-pressed="false">🎲 Bored</button>
           </div>
-          <div class="mix-summary">
-            <p id="mood-summary" role="status">A softer soundtrack and a little escape.</p>
-            <button id="shuffle-mix" type="button">↻ Remix picks</button>
-          </div>
+          <p id="mood-summary" role="status"></p>
+          <div id="mood-music" class="mood-music" aria-live="polite"></div>
           <div id="mood-picks" class="mood-picks"></div>
-          <div class="mix-footer">
-            <span>Curated starting points · tell ZUNO your taste to make them yours.</span>
-            <button id="personalize-mix" type="button">Let’s make it personal ↗</button>
-          </div>
+          <div class="mix-footer"><button id="shuffle-mix" type="button">↻ More movie & activity ideas</button><button id="personalize-mix" type="button">♫ Tag my playlists</button></div>
         </section>
+        <section id="zuno-radio" class="radio-room" aria-labelledby="radio-heading"></section>
+        <section id="study-shell" hidden aria-label="Study Studio"><button id="study-shell-close" type="button">← Back to dashboard</button><iframe id="study-frame" title="Study Studio"></iframe></section>
 
         <div class="suggestions" id="suggestions">
           <button data-prompt="Can we do a gentle check-in about my day?">

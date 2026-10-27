@@ -7,10 +7,12 @@
       <defs><radialGradient id="${id}-body" cx="35%" cy="25%" r="78%"><stop stop-color="#bbbcff"/><stop offset=".25" stop-color="#705bff"/><stop offset=".64" stop-color="#372082"/><stop offset=".88" stop-color="#925bff"/><stop offset="1" stop-color="#f5b7e8"/></radialGradient>
       <radialGradient id="${id}-face" cx="50%" cy="28%" r="80%"><stop stop-color="#17143d"/><stop offset=".7" stop-color="#0d0827"/><stop offset="1" stop-color="#522c9b"/></radialGradient>
       <linearGradient id="${id}-ring"><stop stop-color="#39e8ff"/><stop offset=".48" stop-color="#c3b7ff"/><stop offset="1" stop-color="#ff9ee9"/></linearGradient>
+      <clipPath id="${id}-rear" clipPathUnits="userSpaceOnUse"><rect x="-130" y="-130" width="260" height="130"/></clipPath>
+      <clipPath id="${id}-front" clipPathUnits="userSpaceOnUse"><rect x="-130" y="0" width="260" height="130"/></clipPath>
       <linearGradient id="${id}-shine" x2=".5" y2="1"><stop stop-color="white" stop-opacity=".95"/><stop offset="1" stop-color="#39e8ff" stop-opacity=".1"/></linearGradient></defs>
       <ellipse class="character-shadow" cx="160" cy="270" rx="75" ry="9" fill="#080713" opacity=".55"/>
       <g class="character-float"><g class="character-breathe">
-      <ellipse class="character-orbit-back" cx="160" cy="145" rx="125" ry="52" transform="rotate(-25 160 145)" fill="none" stroke="url(#${id}-ring)" stroke-width="4" opacity=".7"/>
+      <g class="character-orbit-back" transform="translate(160 145)"><g transform="rotate(-25)"><g transform="scale(1 .416)"><g clip-path="url(#${id}-rear)"><g class="character-orbit-spin"><circle r="125" fill="none" stroke="url(#${id}-ring)" stroke-width="4" vector-effect="non-scaling-stroke"/><circle class="character-orbit-glint" r="125" fill="none" stroke="#e5fbff" stroke-opacity=".8" stroke-width="5" stroke-linecap="round" stroke-dasharray="22 370.6990817" vector-effect="non-scaling-stroke"/></g></g></g></g></g>
       <circle class="character-body" cx="160" cy="145" r="100" fill="url(#${id}-body)" stroke="#c5afff" stroke-width="2"/>
       <path d="M75 126C77 65 148 36 193 58" fill="none" stroke="url(#${id}-shine)" stroke-width="9" stroke-linecap="round"/>
       <ellipse cx="160" cy="150" rx="79" ry="76" fill="url(#${id}-face)"/>
@@ -22,7 +24,7 @@
       <ellipse cx="108" cy="167" rx="11" ry="5" fill="#f5a1eb" opacity=".75"/><ellipse cx="212" cy="167" rx="11" ry="5" fill="#e889ea" opacity=".75"/>
       <path class="character-smile" d="M141 173Q160 193 179 173" fill="none" stroke="#f8c9ef" stroke-width="5" stroke-linecap="round"/>
       <ellipse class="character-mouth" cx="160" cy="181" rx="13" ry="10" fill="#e5b5f4"/><ellipse class="character-mouth-inner" cx="160" cy="179" rx="9" ry="6" fill="#30204d"/>
-      </g><path class="character-orbit-front" d="M42 176C63 220 251 180 278 113" transform="rotate(-5 160 145)" fill="none" stroke="url(#${id}-ring)" stroke-width="5" stroke-linecap="round"/>
+      </g><g class="character-orbit-front" transform="translate(160 145)"><g transform="rotate(-25)"><g transform="scale(1 .416)"><g clip-path="url(#${id}-front)"><g class="character-orbit-spin"><circle r="125" fill="none" stroke="url(#${id}-ring)" stroke-width="4" vector-effect="non-scaling-stroke"/><circle class="character-orbit-glint" r="125" fill="none" stroke="#e5fbff" stroke-opacity=".8" stroke-width="5" stroke-linecap="round" stroke-dasharray="22 370.6990817" vector-effect="non-scaling-stroke"/></g></g></g></g></g>
       <g class="character-sparkles" fill="#f5b7e8"><path d="M48 60l4 12 12 4-12 4-4 12-4-12-12-4 12-4z"/><path d="M268 204l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/><circle cx="257" cy="62" r="4" fill="#39e8ff"/></g>
       </g></g><g class="character-meter" fill="#39e8ff"><rect x="136" y="275" width="7" height="6" rx="3"/><rect x="149" y="275" width="7" height="6" rx="3"/><rect x="162" y="275" width="7" height="6" rx="3"/><rect x="175" y="275" width="7" height="6" rx="3"/></g></svg>`;
   });

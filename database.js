@@ -10,27 +10,62 @@ const initSqlJs = require('sql.js');
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'vibeai.db');
 
 let db = null; // Will hold the sql.js DB instance
+let SQL;
+let durableSnapshot;
+const sleeper = new Int32Array(new SharedArrayBuffer(4));
 
-// Write DB to disk after every write operation
+// Write DB to disk after every write operation. The database lives in a synced
+// folder, so the file can be briefly locked by another process (OneDrive,
+// antivirus, a backup tool). Write a sibling temp file and swap it in, retrying
+// briefly instead of failing the request or losing the write.
 function saveToDisk() {
-  const data = db.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+  const data = Buffer.from(db.export());
+  const temporary = `${DB_PATH}.tmp-${process.pid}`;
+  let last;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      fs.writeFileSync(temporary, data);
+      fs.renameSync(temporary, DB_PATH);
+      durableSnapshot = data;
+      return;
+    } catch (error) {
+      last = error;
+      try { fs.rmSync(temporary, { force: true }); } catch {}
+      Atomics.wait(sleeper, 0, 0, 100 * (attempt + 1));
+    }
+  }
+  // A failed write must not appear successful or survive in memory and get
+  // accidentally flushed by an unrelated later request.
+  db.close();
+  db = new SQL.Database(Uint8Array.from(durableSnapshot));
+  const error = new Error('Could not persist changes. Check database storage and retry.');
+  error.status = 503;
+  error.code = last?.code;
+  throw error;
 }
 
 // Initialize DB (async because sql.js loads a WASM binary)
 async function init() {
-  const SQL = await initSqlJs();
+  SQL = await initSqlJs();
 
-  if (fs.existsSync(DB_PATH)) {
+  let file = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try { file = fs.existsSync(DB_PATH) ? fs.readFileSync(DB_PATH) : null; break; }
+    catch (error) {
+      if (attempt === 4) throw error;
+      Atomics.wait(sleeper, 0, 0, 100 * (attempt + 1));
+    }
+  }
+  if (file) {
     // Load existing database from disk
-    const fileBuffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(fileBuffer);
+    db = new SQL.Database(file);
     console.log('[DB] Loaded existing SQLite database from:', DB_PATH);
   } else {
     // Create a fresh database
     db = new SQL.Database();
     console.log('[DB] Created new SQLite database at:', DB_PATH);
   }
+  durableSnapshot = Buffer.from(db.export());
 
   // Create users table if not exists
   db.run(`
@@ -54,6 +89,7 @@ async function init() {
   saveToDisk();
 
   require('./study').init();
+  require('./radio').init();
   return db;
 }
 
@@ -114,8 +150,11 @@ module.exports = {
   write(sql, params = []) { db.run(sql, params); saveToDisk(); },
   transaction(fn) {
     db.run('BEGIN');
-    try { const result = fn(); db.run('COMMIT'); saveToDisk(); return result; }
-    catch (error) { db.run('ROLLBACK'); throw error; }
+    let result;
+    try { result = fn(); db.run('COMMIT'); }
+    catch (error) { try { db.run('ROLLBACK'); } catch {} throw error; }
+    saveToDisk();
+    return result;
   },
   execute(sql, params = []) { db.run(sql, params); },
   profile(id) {

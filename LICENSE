@@ -1,0 +1,104 @@
+ZUNO SOURCE-AVAILABLE NON-COMMERCIAL LICENSE
+Version 1.0 — October 27, 2026
+
+
+Copyright (c) 2026 Shayak Mukherjee.
+Original ZUNO project creator and licensor: Shayak Mukherjee.
+Third-party components and independent contributions remain copyright of their respective owners.
+All rights reserved except as expressly granted below.
+
+
+IMPORTANT: This is a custom source-available license, not an Open Source Initiative-approved open-source license. It is not legal advice. This license covers only material the licensor has authority to license; third-party materials retain their own licenses.
+
+
+1. DEFINITIONS
+
+
+"Software" means the original ZUNO source code, associated documentation, and modifications or derivative works based on that code to the extent the Licensor holds the relevant rights, as distributed with this license. It does not include separately licensed third-party components.
+
+
+"Licensor" means Shayak Mukherjee for original ZUNO code owned by Shayak Mukherjee, or another party authorized to license applicable material where expressly identified.
+
+
+"You" means any individual or legal entity exercising rights under this license.
+
+
+"Non-Commercial Use" means use solely for personal, educational, research, evaluation, or community purposes, without a commercial advantage, monetary compensation, or direct or indirect monetization of the Software or a derivative of it. Use by a business or for a business activity is not automatically Non-Commercial Use merely because no fee is charged.
+
+
+"Commercial Use" means any use of the Software or a derivative for commercial advantage or monetary compensation, including selling or licensing copies; providing paid or advertising-supported access; offering the Software as a hosted service for business purposes; bundling it into a paid product or service; or otherwise monetizing it directly or indirectly. Independent software that merely interoperates with ZUNO and does not copy licensed material is not covered by this definition solely because of interoperability.
+
+
+2. NON-COMMERCIAL LICENSE GRANT
+
+
+Subject to compliance with this license, the Licensor grants You a worldwide, royalty-free, non-exclusive, non-transferable, revocable-upon-breach license to access, reproduce, run, study, modify, and distribute the Software solely for Non-Commercial Use. You may share non-commercial modifications under this license, provided You preserve this license and all applicable copyright and attribution notices, identify significant modifications, and do not imply endorsement by the Licensor.
+
+
+No patent license or trademark license is granted by this document.
+
+
+3. COMMERCIAL USE REQUIRES A SEPARATE AGREEMENT
+
+
+No Commercial Use is permitted under this license. Before any Commercial Use, You must obtain a separate written commercial license signed by the Licensor or an authorized representative. That agreement must expressly authorize the proposed use and establish financial terms, including revenue sharing or other agreed compensation, calculation basis, reporting, payment timing, and audit or verification rights as appropriate.
+
+
+The Licensor is not obligated to grant commercial rights. No royalty rate or revenue percentage is offered or implied by this license. In the absence of an executed commercial agreement, Commercial Use remains prohibited. Mere notice to the Licensor, publication of financial statements, or an unsolicited payment does not grant commercial rights.
+
+
+4. REDISTRIBUTION AND MODIFICATIONS
+
+
+For permitted Non-Commercial Use, You may distribute copies or modified versions only if You (a) include this license, (b) preserve copyright and attribution notices, (c) clearly state that You made modifications where applicable, and (d) do not remove or misrepresent the origin of the Software. You must not sublicense broader rights than this license grants.
+
+
+5. NAME, LOGO, AND ATTRIBUTION
+
+
+This license does not grant permission to use the ZUNO name, logo, or other trademarks in a manner that implies official affiliation, endorsement, or ownership. Factual references identifying the Software's origin are permitted to the extent allowed by applicable law. You must not falsely claim to have created the original ZUNO Software.
+
+
+6. CONTRIBUTIONS
+
+
+This license does not by itself transfer ownership of a contributor's work to the Licensor. Contributors retain rights in their contributions unless separately agreed. Acceptance of contributions does not automatically give the Licensor the right to relicense those contributions commercially. The project may establish a separate contributor agreement before accepting contributions requiring commercial relicensing rights.
+
+
+7. THIRD-PARTY COMPONENTS
+
+
+Third-party dependencies, services, assets, and code remain governed by their respective licenses. This license neither replaces nor overrides those licenses. If any part of a distribution cannot lawfully be licensed under these terms, the Licensor must exclude it or comply with its applicable terms.
+
+
+8. TERMINATION
+
+
+Rights under this license terminate automatically if You materially breach its terms. Upon termination, You must cease exercising rights granted by this license and stop distributing infringing copies, except where applicable law provides otherwise. The Licensor may reinstate rights by written notice. Termination does not limit any rights or remedies available under applicable law.
+
+
+9. NO WARRANTY
+
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+
+10. LIMITATION OF LIABILITY
+
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSOR AND CONTRIBUTORS SHALL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM THE SOFTWARE OR THIS LICENSE, EXCEPT WHERE SUCH EXCLUSION IS PROHIBITED BY LAW.
+
+
+11. RESERVATION OF RIGHTS; SEVERABILITY
+
+
+All rights not expressly granted are reserved. If a provision is held unenforceable, the remaining provisions continue to apply to the extent permitted by law. No waiver is effective unless made in writing by the party granting it.
+
+
+12. COMMERCIAL LICENSING CONTACT
+
+
+To request Commercial Use, contact the copyright owner through the official ZUNO project repository's designated licensing contact. Commercial rights arise only upon execution of a separate written agreement.
+
+
+END OF LICENSE

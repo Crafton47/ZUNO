@@ -1,15 +1,20 @@
 {
   "name": "vibe-ai",
   "version": "1.0.0",
-  "description": "Vibe AI — personal lifestyle chatbot with authentication",
+  "description": "ZUNO PLAYCORE: personal AI companion, planner and trusted-owner Study Studio",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "node --test tests/companion.test.cjs tests/study.test.cjs",
+    "test": "node --test tests/companion.test.cjs tests/study.test.cjs tests/exam-rescue.test.cjs tests/radio.test.cjs tests/radio-metadata.test.cjs tests/release-security.test.cjs tests/release-mobile.test.cjs",
     "study:setup": "node scripts/setup-study.cjs",
     "study:model": "node scripts/configure-study-model.cjs",
-    "test:study:live": "node tests/study-live.cjs"
+    "test:study:live": "node tests/study-live.cjs",
+    "test:radio:live": "node --test tests/radio-live-smoke.cjs",
+    "check": "node scripts/check.cjs",
+    "lint": "eslint .",
+    "build": "npm run check && node scripts/build.cjs",
+    "scan:secrets": "node scripts/scan-secrets.cjs --history"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",
@@ -23,12 +28,15 @@
     "ws": "^8.22.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1"
+    "@playwright/test": "^1.64.1",
+    "eslint": "^10.13.0"
   },
   "engines": {
     "node": ">=20.19.0"
   },
   "overrides": {
     "qs": "^6.16.1"
-  }
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true
 }

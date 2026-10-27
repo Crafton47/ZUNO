@@ -6,9 +6,24 @@ Quick local study setup: `npm run study:setup`, then `docker compose -f deploy/c
 
 The earlier AURA documentation below describes the preserved companion/planner features.
 
+## Study Studio 2.0 — Learning Experience
+
+Study Studio (`/study`) is a fully interactive AI-powered learning environment grounded entirely in your uploaded notebook material.
+
+**Features:**
+- **💬 Ask Your Material** — Spacious Markdown-rendered answers with inline citation chips that open the source document. Suggested prompt chips for common study patterns.
+- **📝 Exam Mode** — Choose 3-mark, 5-mark, 10-mark, revision notes, or detailed explanation formats. Answers are structured for exam writing: definition → key points → examples → keywords highlighted.
+- **🎯 Quiz Me** — 5 notebook-grounded MCQ questions with immediate per-answer feedback, source attribution, and a final score ring. Retry as many times as you like.
+- **🃏 Flashcards** — AI-generated front/back flashcards with 3D flip animation. Mark Easy/Hard to track your progress. Cards persist between sessions.
+- **🏆 Study XP** — Earn XP for meaningful study activities (quiz completion, flashcard sessions, exam answers). Abuse-resistant: one award per event per notebook per hour, enforced server-side.
+- **Answer Toolbar** — Every answer has: Copy, Save as note, Explain Simply (simplified grounded re-answer), Exam Answer shortcut, Quiz Me, Flashcards, and 👍/👎 feedback.
+- **Focus Mode** — Calms visuals while keeping all controls usable; toggle in the header.
+
+All answers are grounded exclusively in your notebook's extracted text. The backend never proxies arbitrary upstream IDs; citations resolve only to authorized material.
+
 [![Node.js](https://img.shields.io/badge/Node.js-20.19+-green.svg)](https://nodejs.org/)
 [![AI Provider](https://img.shields.io/badge/AI-Gemini%20Live%20%7C%20NVIDIA-blueviolet.svg)](https://ai.google.dev/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Source--Available%20Non--Commercial-blue.svg)](LICENSE)
 
 > **For AI Agents & Developers:** Consult [`AGENTS.md`](file:///c:/Users/Shaya/OneDrive/Documents/Visual%20Studio%202019/project%202/AGENTS.md) for full architectural maps, database schemas, API specs, and technical rules.
 
@@ -170,4 +185,38 @@ npm test
 - **Ephemeral Voice Tokens:** Voice calls upgrade via single-use, 30-second cryptographic tickets.
 - **Audio Privacy:** Audio streams are processed live in-memory; **no audio recordings are ever saved to disk**.
 - **15-Minute Safeguard:** Live voice calls automatically cap at 15 minutes per session to prevent accidental open microphones or excessive API quota usage.
+
+
+## ZUNO Radio and Vibe Check
+
+Six mood choices, saved YouTube playlists and a persistent player are available at `/chat#zuno-radio`. ZUNO Radio now includes a real YouTube Data API track browser, direct track selection, seek, volume, mute, background-tab playback and refresh restore without autoplay. The player has three layouts: an expanded studio, a draggable 202 × 274 glass card that keeps music playing, and a 330 × 66 paused bar. Drag the card by its `⠿` grip (or use arrow keys on the grip, Home to reset); its position is saved per account, clamped to the viewport and edge-snapped on mobile. YouTube requires a visible 200 × 200 player during playback, so the floating card cannot shrink further and the mini bar is paused-only. Add a server-side `YOUTUBE_API_KEY` to `.env` for titles, artwork, durations and the track list; playback still works without it. See [architecture, setup, verification and playback limits](docs/ZUNO-RADIO.md).
+
+```powershell
+npm test                 # deterministic suite
+npm run test:radio:live  # opt-in real YouTube data + playback check
+```
+
+---
+
+## Licensing & Commercial Authorization
+
+ZUNO is published as **source-available** software under the **ZUNO Source-Available Non-Commercial License (Version 1.0)**. It is **not** an Open Source Initiative (OSI)-approved open-source license.
+
+### Non-Commercial Use (Permitted)
+You are free to access, view, study, run, self-host, and modify ZUNO for:
+- Personal individual productivity
+- Non-commercial educational and classroom use
+- Non-monetized research, benchmarking, and study
+- Community contributions under the non-commercial license
+
+### Commercial Use (Requires Separate Written Agreement)
+Any commercial use—including but not limited to hosting ZUNO as a paid or ad-supported service, bundling it into commercial SaaS, enterprise deployments, or direct or indirect monetization—is **strictly prohibited** without an executed, written commercial agreement signed by the copyright owner.
+
+- Commercial rights are **never granted automatically**.
+- Commercial agreements require negotiated financial terms, such as agreed revenue-sharing, compensation models, reporting, and audit verification.
+- To discuss commercial licensing, contact the copyright owner: **Shayak Mukherjee** via the repository contact channels.
+
+### Third-Party Software & Trademarks
+- **Third-Party Components:** Upstream libraries, dependencies (e.g. Express, Multer, Luxon, SQLite/sql.js, ws), and the integrated Open Notebook service (`third-party/OPEN-NOTEBOOK-LICENSE`, Copyright © 2024 Luis Novo, MIT License) retain their independent open-source licenses and are not relicensed by ZUNO.
+- **Branding & Trademarks:** The ZUNO name, logos, mascot vector art, and associated trademarks are protected and may not be used to imply official endorsement or affiliation without permission.
 

@@ -1,4 +1,4 @@
-﻿const { test } = require('node:test');
+const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
@@ -7,11 +7,12 @@ const path = require('node:path');
 const { chromium } = require('@playwright/test');
 const { WebSocket } = require('ws');
 const { once } = require('node:events');
+const { DateTime } = require('luxon');
 
 test('isolated API, account boundaries and browser call lifecycle', { timeout: 120000 }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-test-'));
   const port = 32179, base = `http://localhost:${port}`;
-  const child = spawn(process.execPath, ['--require', './tests/fake-provider.cjs', 'server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: String(port), DB_PATH: path.join(dir, 'test.db'), JWT_SECRET: 'isolated-test-secret', GEMINI_API_KEY: 'simulated-test-key', NVIDIA_API_KEY: '', CHAT_PROVIDER: 'gemini' }, stdio: 'pipe' });
+  const child = spawn(process.execPath, ['--require', './tests/fake-provider.cjs', 'server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: String(port), DB_PATH: path.join(dir, 'test.db'), JWT_SECRET: 'isolated-test-secret-test-test-test-test', GEMINI_API_KEY: 'simulated-test-key', NVIDIA_API_KEY: '', CHAT_PROVIDER: 'gemini' }, stdio: 'pipe' });
   let browser;
   try {
     await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(new Error('Server did not start')), 15000); child.stdout.on('data', data => { if (String(data).includes('Server running')) { clearTimeout(timer); resolve(); } }); child.on('exit', code => { clearTimeout(timer); reject(new Error('Server exited ' + code)); }); });
@@ -30,9 +31,16 @@ test('isolated API, account boundaries and browser call lifecycle', { timeout: 1
     const taskId = saved.tasks[0].id;
     assert.equal((await (await request('/api/companion/tasks', 'GET', undefined, b)).json()).tasks.length, 0);
     assert.equal((await request('/api/companion/tasks/' + taskId, 'PATCH', { completed: true }, b)).status, 400);
-    assert.equal((await request('/api/companion/tasks', 'POST', { tasks: [{ title: 'No offset', dueAt: '2030-01-01T12:00' }] }, a)).status, 400);
+    // Natural-language deadlines are resolved on the server, in the user's timezone.
+    const phrase = await (await request('/api/companion/tasks', 'POST', { tasks: [{ title: 'Weekend revision', when: 'Saturday at 9am' }], timezone: 'Asia/Kolkata' }, a)).json();
+    const resolved = DateTime.fromISO(phrase.tasks[0].due_at).setZone('Asia/Kolkata');
+    assert.equal(resolved.weekday, 6); assert.equal(resolved.hour, 9);
+    // ISO without an offset is read in the user's timezone instead of being rejected.
+    const naive = await (await request('/api/companion/tasks', 'POST', { tasks: [{ title: 'No offset', dueAt: '2030-01-01T12:00' }], timezone: 'Asia/Kolkata' }, a)).json();
+    assert.equal(naive.tasks[0].due_at, '2030-01-01T06:30:00.000Z');
+    assert.equal((await request('/api/companion/tasks', 'POST', { tasks: [{ title: 'Nonsense', when: 'whenever you feel like it' }], timezone: 'Asia/Kolkata' }, a)).status, 400);
     assert.equal((await request('/api/companion/tasks', 'POST', { tasks: [{ title: 'Valid', dueAt: future }, { title: '' }] }, a)).status, 400);
-    assert.equal((await (await request('/api/companion/tasks', 'GET', undefined, a)).json()).tasks.length, 1);
+    assert.equal((await (await request('/api/companion/tasks', 'GET', undefined, a)).json()).tasks.length, 3);
     saved = await (await request('/api/companion/tasks/' + taskId, 'PATCH', { completed: true }, a)).json();
     const firstReward = saved.task.reward;
     assert.ok(firstReward.title);
@@ -44,6 +52,23 @@ test('isolated API, account boundaries and browser call lifecycle', { timeout: 1
     const taskReply = await (await request('/api/companion/chat', 'POST', { text: 'Add test study task to my planner', timezone: 'Asia/Kolkata' }, a)).json();
     assert.match(taskReply.text, /Saved to your planner/);
     assert.ok((await (await request('/api/companion/tasks', 'GET', undefined, a)).json()).tasks.some(t => t.title === 'Test study task'));
+    // A false "done" reply with no tool call must be recovered, not trusted.
+    const recovered = await (await request('/api/companion/chat', 'POST', { text: 'Remind me to call the dentist tomorrow at 5pm', timezone: 'Asia/Kolkata' }, a)).json();
+    assert.match(recovered.text, /Saved to your planner/);
+    assert.doesNotMatch(recovered.text, /Done! I added it to your planner/);
+    const dentist = (await (await request('/api/companion/tasks', 'GET', undefined, a)).json()).tasks.find(t => t.title === 'Call the dentist');
+    assert.ok(dentist, 'the forced retry should save the task');
+    const dentistDue = DateTime.fromISO(dentist.due_at).setZone('Asia/Kolkata');
+    assert.equal(dentistDue.hour, 17); assert.equal(dentistDue.minute, 0);
+    assert.ok(dentistDue.toMillis() > Date.now());
+    // When nothing can be saved, say so instead of claiming success.
+    const honest = await (await request('/api/companion/chat', 'POST', { text: 'Add a task with a broken title', timezone: 'Asia/Kolkata' }, a)).json();
+    assert.match(honest.text, /couldn.t save|Nothing was added/i);
+    assert.equal((await (await request('/api/companion/tasks', 'GET', undefined, a)).json()).tasks.filter(t => !t.title).length, 0);
+    // A correct save with a wrong time in the prose is replaced by the real deadline.
+    const laundry = await (await request('/api/companion/chat', 'POST', { text: 'Add laundry tomorrow at 8pm', timezone: 'Asia/Kolkata' }, a)).json();
+    assert.match(laundry.text, /8:00 PM/);
+    assert.doesNotMatch(laundry.text, /10\s*am/i);
     assert.equal((await request('/api/register', 'POST', { username: {}, email: [], password: 4 })).status, 400);
     await request('/api/companion/profile', 'PUT', { notes: 'I like evening walks.' }, a);
     assert.equal((await (await request('/api/companion', 'GET', undefined, b)).json()).notes, '');
@@ -84,19 +109,19 @@ test('isolated API, account boundaries and browser call lifecycle', { timeout: 1
     await page.locator('#planner-year-toggle').click();
     assert.equal(await page.locator('.planner-month').count(), 12);
     await page.locator('#planner-year-toggle').click();
-    assert.equal(await page.locator('.pick-card').count(), 4);
+    assert.equal(await page.locator('.radio-secondary').count(), 2);
     await page.locator('[data-mood="focus"]').click();
     assert.equal(await page.locator('[data-mood="focus"]').getAttribute('aria-pressed'), 'true');
-    const firstPick = await page.locator('.pick-music h3').textContent();
+    const firstPick = await page.locator('.radio-secondary h3').first().textContent();
     await page.locator('#shuffle-mix').click();
-    assert.notEqual(await page.locator('.pick-music h3').textContent(), firstPick);
+    assert.notEqual(await page.locator('.radio-secondary h3').first().textContent(), firstPick);
     await page.locator('#message').fill('I feel overwhelmed');
     await page.locator('#send').click();
     await page.waitForFunction(() => !document.getElementById('send').disabled);
-    assert.equal(await page.locator('[data-mood="stressed"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-mood="tired"]').getAttribute('aria-pressed'), 'true');
     await page.locator('#personalize-mix').click();
     await page.waitForFunction(() => !document.getElementById('send').disabled);
-    assert.match(await page.locator('#thread').textContent(), /I’m feeling stressed/);
+    assert.equal(new URL(page.url()).hash, '#zuno-radio');
     await page.screenshot({ path: path.join(dir, 'desktop.png'), fullPage: true });
     await page.locator('#message').fill('<img src=x onerror=alert(1)>'); await page.locator('#send').click();
     await page.waitForFunction(() => !document.getElementById('send').disabled);
@@ -133,13 +158,13 @@ test('isolated API, account boundaries and browser call lifecycle', { timeout: 1
 test('missing provider key gives actionable errors without starting a call', { timeout: 30000 }, async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-no-key-'));
   const port = 32180, base = `http://localhost:${port}`;
-  const child = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: String(port), DB_PATH: path.join(dir, 'test.db'), JWT_SECRET: 'isolated-test-secret', GEMINI_API_KEY: '', NVIDIA_API_KEY: '', CHAT_PROVIDER: 'gemini' }, stdio: 'pipe' });
+  const child = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: String(port), DB_PATH: path.join(dir, 'test.db'), JWT_SECRET: 'isolated-test-secret-test-test-test-test', GEMINI_API_KEY: '', NVIDIA_API_KEY: '', CHAT_PROVIDER: 'gemini' }, stdio: 'pipe' });
   try {
     await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(new Error('Startup timeout')), 10000); child.stdout.on('data', data => { if (String(data).includes('Server running')) { clearTimeout(timer); resolve(); } }); child.on('exit', () => { clearTimeout(timer); reject(new Error('Startup failed')); }); });
     const jwt = require('jsonwebtoken');
     const headers = { 'Content-Type': 'application/json' };
     await fetch(base + '/api/register', { method: 'POST', headers, body: JSON.stringify({ username: 'nokey', email: 'nokey@example.com', password: 'test-password' }) });
-    headers.Authorization = 'Bearer ' + jwt.sign({ id: 1, username: 'nokey' }, 'isolated-test-secret');
+    headers.Authorization = 'Bearer ' + jwt.sign({ id: 1, username: 'nokey' }, 'isolated-test-secret-test-test-test-test');
     const state = await (await fetch(base + '/api/companion', { headers })).json(); assert.equal(state.configured, false);
     for (const route of ['/call', '/chat']) {
       const response = await fetch(base + '/api/companion' + route, { method: 'POST', headers, body: JSON.stringify({ text: 'hello' }) });
@@ -172,6 +197,43 @@ test('NVIDIA adapter maps history and reports provider failures', async () => {
   }
 });
 
+test('forced planner call runs once, then retries resume normal replies', async () => {
+  const originalFetch = global.fetch;
+  const oldProvider = process.env.CHAT_PROVIDER;
+  const oldKey = process.env.NVIDIA_API_KEY;
+  process.env.CHAT_PROVIDER = 'nvidia'; process.env.NVIDIA_API_KEY = 'test-only';
+  try {
+    const adapter = require('../chat-provider');
+    let calls = 0;
+    global.fetch = async (url, options) => {
+      calls++;
+      const payload = JSON.parse(options.body);
+      if (calls === 1) {
+        assert.deepEqual(payload.tool_choice, { type: 'function', function: { name: 'add_tasks' } });
+        return { ok: true, json: async () => ({ choices: [{ message: { role: 'assistant', content: null, tool_calls: [{ id: 'forced', type: 'function', function: { name: 'add_tasks', arguments: '{"tasks":[{"title":"Forced"}]}' } }] } }] }) };
+      }
+      assert.equal(payload.tool_choice, 'auto');
+      assert.equal(payload.messages.at(-1).role, 'tool');
+      return { ok: true, json: async () => ({ choices: [{ message: { content: 'Saved to your planner.' } }] }) };
+    };
+    const ran = [];
+    const text = await adapter.reply('sys', [], 'add it', { tools: [{ name: 'add_tasks', description: 'Save tasks', parameters: { type: 'object' } }], run: (name, args) => { ran.push([name, args]); return { saved: true, tasks: [] }; }, force: 'add_tasks' });
+    assert.equal(text, 'Saved to your planner.');
+    assert.deepEqual(ran, [['add_tasks', { tasks: [{ title: 'Forced' }] }]]);
+    assert.equal(calls, 2);
+    let attempt = 0;
+    global.fetch = async () => { attempt++; return attempt === 1 ? { ok: false, status: 503 } : { ok: true, json: async () => ({ choices: [{ message: { content: 'Recovered' } }] }) }; };
+    assert.equal(await adapter.reply('', [], 'hello'), 'Recovered');
+    assert.equal(attempt, 2);
+    global.fetch = async () => ({ ok: true, json: async () => ({ choices: [] }) });
+    await assert.rejects(adapter.reply('', [], 'hello'), /Malformed provider response/);
+  } finally {
+    global.fetch = originalFetch;
+    if (oldProvider === undefined) delete process.env.CHAT_PROVIDER; else process.env.CHAT_PROVIDER = oldProvider;
+    if (oldKey === undefined) delete process.env.NVIDIA_API_KEY; else process.env.NVIDIA_API_KEY = oldKey;
+  }
+});
+
 test('scheduler timezone, reminders, idempotency and disk persistence', async () => {
   const { DateTime } = require('luxon');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-schedule-unit-'));
@@ -185,6 +247,17 @@ test('scheduler timezone, reminders, idempotency and disk persistence', async ()
   assert.equal(late.due_at, '2030-04-05T18:29:59.999Z');
   const summer = scheduler.validate({ title: 'Read' }, 'America/New_York', DateTime.fromISO('2030-07-05T12:00:00-04:00'));
   assert.equal(summer.due_at, '2030-07-06T01:00:00.000Z');
+  // Natural-language deadlines resolve in the user's timezone, not the server's.
+  const monday = DateTime.fromISO('2026-10-26T23:30:00+05:30');
+  assert.equal(scheduler.validate({ title: 'Call', when: 'tomorrow at 6pm' }, 'Asia/Kolkata', monday).due_at, '2026-10-27T12:30:00.000Z');
+  assert.equal(scheduler.validate({ title: 'Homework', when: 'kal shaam 5 baje' }, 'Asia/Kolkata', monday).due_at, '2026-10-27T11:30:00.000Z');
+  assert.equal(scheduler.validate({ title: 'Submit', when: 'Friday at 9am' }, 'Asia/Kolkata', monday).due_at, '2026-10-30T03:30:00.000Z');
+  assert.equal(scheduler.validate({ title: 'Meet', when: '30th October at 3pm' }, 'Asia/Kolkata', monday).due_at, '2026-10-30T09:30:00.000Z');
+  assert.equal(scheduler.validate({ title: 'Break', when: 'in 2 hours' }, 'Asia/Kolkata', monday).due_at, '2026-10-26T20:00:00.000Z');
+  assert.throws(() => scheduler.validate({ title: 'Vague', when: 'sometime soon maybe' }, 'Asia/Kolkata', monday), /deadline/i);
+  assert.equal(scheduler.mentionsDeadline('add buy groceries to my to-do list', 'Asia/Kolkata', monday), false);
+  assert.equal(scheduler.mentionsDeadline('call mom tomorrow at 6pm', 'Asia/Kolkata', monday), true);
+  assert.equal(scheduler.mentionsDeadline('kal shaam 5 baje yaad dilana', 'Asia/Kolkata', monday), true);
   const due = DateTime.now().setZone('Asia/Kolkata').plus({ days: 1 }).set({ hour: 21, minute: 0, second: 0, millisecond: 0 });
   const args = { tasks: [{ title: 'Tomorrow task', dueAt: due.toISO() }] };
   const result = scheduler.runTool(1, 'add_tasks', args, 'Asia/Kolkata', 'same-call');

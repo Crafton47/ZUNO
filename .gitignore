@@ -5,3 +5,24 @@ deploy/.env
 *.db-*
 test-results/
 playwright-report/
+
+# Local credentials, private data, audit checkpoints and generated output
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+*service-account*.json
+*.log
+logs/
+uploads/
+backups/
+coverage/
+artifacts/
+dist/
+.gravitas/
+.agents/
+skills-lock.json
+*.db.tmp-*

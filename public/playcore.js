@@ -29,5 +29,12 @@
   window.addEventListener('zuno-reward-revealed', () => window.ZunoMascot.set('reward', 'excited', 3000));
   window.addEventListener('pagehide', () => window.ZunoMascot.reset());
   render();
-  for (const id of ['study-nav', 'study-entry']) document.getElementById(id).onclick = () => { location.href = '/study'; };
+  for (const id of ['study-nav', 'study-entry']) {
+    const el = document.getElementById(id);
+    if (el) el.onclick = () => {
+      document.querySelectorAll('nav .nav-item').forEach(n => n.classList.remove('selected'));
+      document.getElementById('study-nav')?.classList.add('selected');
+      window.ZunoRadio?.openStudy ? window.ZunoRadio.openStudy() : location.assign('/study');
+    };
+  }
 })();

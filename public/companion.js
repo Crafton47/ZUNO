@@ -5,7 +5,7 @@ const token = localStorage.getItem('vibe_token');
 if (!token) location.replace('/login.html');
 function notice(message) { $('notice').textContent = message; $('notice').hidden = !message; }
 async function api(path = '', options = {}) {
-  const response = await fetch('/api/companion' + path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(120000) });
+  const response = await fetch('/api/companion' + path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(180000) });
   if (response.status === 401 || response.status === 403) { location.replace('/login.html'); throw new Error('Please log in again.'); }
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Something went wrong. Please retry.');
@@ -78,17 +78,22 @@ $('conversation-tab').onclick = () => {
   document.querySelectorAll('nav .nav-item').forEach(el => el.classList.remove('selected'));
   $('conversation-tab').classList.add('selected');
 };
-document.querySelectorAll('nav a.nav-item').forEach(link => {
+document.querySelectorAll('nav .nav-item').forEach(link => {
   link.addEventListener('click', () => {
     document.querySelectorAll('nav .nav-item').forEach(el => el.classList.remove('selected'));
     link.classList.add('selected');
   });
 });
 window.addEventListener('scroll', () => {
+  if ($('study-shell') && !$('study-shell').hidden) return;
   const plannerTop = $('daily-planner')?.getBoundingClientRect().top ?? 9999;
   const moodTop = $('mood-studio')?.getBoundingClientRect().top ?? 9999;
+  const radioTop = $('zuno-radio')?.getBoundingClientRect().top ?? 9999;
   const navItems = document.querySelectorAll('nav .nav-item');
-  if (moodTop <= 220) {
+  if (radioTop <= 220) {
+    navItems.forEach(el => el.classList.remove('selected'));
+    document.querySelector('nav a[href="#zuno-radio"]')?.classList.add('selected');
+  } else if (moodTop <= 220) {
     navItems.forEach(el => el.classList.remove('selected'));
     document.querySelector('nav a[href="#mood-studio"]')?.classList.add('selected');
   } else if (plannerTop <= 220) {
@@ -116,7 +121,7 @@ function playAudio(c, base64) {
   source.onended = () => { c.sources.delete(source); if (!c.sources.size && call === c) { $('orb-scene').classList.remove('speaking'); window.ZunoMascot?.set('voice', c.muted ? 'idle' : 'listening'); } };
 }
 function finishCall(reason = 'Call ended. Take a little calm with you.') {
-  const c = call; if (!c) return; call = null; window.ZunoMascot?.clear('voice');
+  const c = call; if (!c) return; call = null; window.dispatchEvent(new Event('zuno-live-end')); window.ZunoMascot?.clear('voice');
   clearInterval(c.timer); clearTimeout(c.timeout); cancelAnimationFrame(c.visualFrame); window.ZunoMascot?.level('speech', 0); window.ZunoMascot?.level('mic', 0); c.stream?.getTracks().forEach(track => track.stop());
   c.capture?.disconnect(); c.mic?.disconnect(); stopAudio(c); c.audio?.close().catch(() => {});
   if (c.socket && c.socket.readyState < 2) c.socket.close();
@@ -131,7 +136,7 @@ $('call').onclick = async () => {
   window.ZunoMascot?.clear('voice-error');
   if (!configured) { notice('Add GEMINI_API_KEY to the server .env file and restart before starting a call.'); return; }
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) { notice('Voice calls need a current browser on localhost or HTTPS with microphone support.'); return; }
-  const c = { sources: new Set(), next: 0, muted: false, ready: false, captions: {} }; call = c; lock(); notice('');
+  const c = { sources: new Set(), next: 0, muted: false, ready: false, captions: {} }; call = c; window.dispatchEvent(new Event('zuno-live-start')); lock(); notice('');
   $('call').hidden = true; $('call-controls').hidden = false; $('mute').disabled = true; $('caption').textContent = '';
   $('orb-scene').classList.remove('active', 'speaking', 'muted'); $('orb-scene').classList.add('connecting');
   $('call-status').textContent = 'Allow microphone access to connect…';
@@ -203,69 +208,3 @@ $('hangup').onclick = () => finishCall();
 $('logout').onclick = () => { finishCall(); localStorage.removeItem('vibe_token'); localStorage.removeItem('vibe_user'); location.replace('/login.html'); };
 window.addEventListener('pagehide', () => finishCall());
 initialize();
-
-/* Integrated mood mix: curated picks, with tentative keyword cues the user can override. */
-(() => {
-  const catalog = window.vibeCatalog;
-  const moods = {
-    happy: { music: 'happy', movie: 'comedy', activity: 2, food: 'dessert', line: 'Keep the good feeling going. Here’s your little victory lap.' },
-    sad: { music: 'chill', movie: 'animated', activity: 1, food: 'hungry', line: 'No pressure to cheer up. A soft landing, at your pace.' },
-    stressed: { music: 'focus', movie: 'animated', activity: 8, food: 'snack', line: 'Less noise, more breathing room. Start with something gentle.' },
-    chill: { music: 'chill', movie: 'comedy', activity: 3, food: 'snack', line: 'A softer soundtrack and a little escape.' },
-    energetic: { music: 'energetic', movie: 'action', activity: 2, food: 'hungry', line: 'Turn the volume up. Give that energy somewhere to go.' },
-    focus: { music: 'focus', movie: 'scifi', activity: 5, food: 'snack', line: 'A soundtrack for now. A movie for your well-earned break.' },
-    bored: { music: 'happy', movie: 'scifi', activity: 6, food: 'dessert', line: 'Plot twist: your day still has a few good surprises.' },
-    romantic: { music: 'romantic', movie: 'romance', activity: 9, food: 'dessert', line: 'For the main-character montage playing in your head.' }
-  };
-  let selected = 'chill', offset = 0;
-  const pick = (list, index = offset) => list[index % list.length];
-  function card(kind, title, description, action, href, symbol) {
-    const article = document.createElement('article'); article.className = 'pick-card pick-' + kind;
-    const art = document.createElement('div'); art.className = 'pick-art'; art.setAttribute('aria-hidden', 'true'); art.textContent = symbol;
-    const label = document.createElement('span'); label.className = 'eyebrow'; label.textContent = kind === 'music' ? 'YOUR SOUNDTRACK' : kind === 'movie' ? 'TONIGHT’S WATCH' : kind === 'food' ? 'A LITTLE COMFORT' : 'OFFLINE MOMENT';
-    const h = document.createElement('h3'); h.textContent = title;
-    const p = document.createElement('p'); p.textContent = description;
-    const a = document.createElement(href ? 'a' : 'button'); a.textContent = action + ' ↗';
-    if (href) { a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.setAttribute('aria-label', action + ': ' + title + ' (opens a new tab)'); }
-    else a.onclick = () => ask(`I’m feeling ${selected}. Help me try this: ${title}. Keep it simple and ask about any preferences first.`);
-    article.append(art, label, h, p, a); return article;
-  }
-  function render(inferred = false) {
-    const mood = moods[selected];
-    document.querySelectorAll('[data-mood]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mood === selected)));
-    $('mood-summary').textContent = (inferred ? `Sounds like ${selected} might fit — change it if I’m off. ` : '') + mood.line;
-    const music = pick(catalog.MUSIC[mood.music].playlists), movie = pick(catalog.MOVIES[mood.movie]);
-    const food = pick(catalog.FOOD[mood.food]), activity = pick(catalog.ACTIVITIES, mood.activity + offset);
-    $('mood-picks').replaceChildren(
-      card('music', music.name, music.meta, 'Find on Spotify', 'https://open.spotify.com/search/' + encodeURIComponent(music.name), '♫'),
-      card('movie', movie.title, `${movie.year} · ${movie.tags.join(' / ')}. Search for a trailer before you pick.`, 'Find trailer', 'https://www.youtube.com/results?search_query=' + encodeURIComponent(movie.title + ' official trailer'), '▶'),
-      card('activity', activity.name, activity.meta, 'Try this', null, '✳'),
-      card('food', food.name, 'A starting idea. Tell Vibe about allergies or dietary preferences before planning a meal.', 'Make it my way', null, '◒')
-    );
-  }
-  function ask(text) {
-    if (busy || call) { notice('Finish the current reply or call, then we can make your mix personal.'); return; }
-    $('message').value = text; $('chat-form').requestSubmit(); $('thread').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-  document.querySelectorAll('[data-mood]').forEach(button => button.onclick = () => { selected = button.dataset.mood; offset = 0; render(); });
-  $('shuffle-mix').onclick = () => { offset++; render(); };
-  $('personalize-mix').onclick = () => {
-    const mood = moods[selected];
-    ask(`I’m feeling ${selected}. My mood mix suggests ${pick(catalog.MUSIC[mood.music].playlists).name} and ${pick(catalog.MOVIES[mood.movie]).title}. Help me find music or a movie that fits my mood. Ask one question about my taste first, then explain why your suggestions fit.`);
-  };
-  function infer(text) {
-    // Only explicit first-person cues, not claims to diagnose emotion from arbitrary text.
-    const patterns = [
-      ['stressed', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really |a bit )?(?:stressed|anxious|overwhelmed|burnt out)\b/i],
-      ['sad', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really |a bit )?(?:sad|lonely|down|low|heartbroken)\b/i],
-      ['happy', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really )?(?:happy|excited|great|amazing)\b/i],
-      ['bored', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really )?bored\b/i],
-      ['focus', /\b(?:i need to|help me|i want to)\s+(?:focus|study|concentrate)\b/i],
-      ['chill', /\b(?:i(?:’|'| a)?m|i feel|feeling)\s+(?:so |really )?(?:tired|chill|relaxed)\b/i]
-    ];
-    const match = patterns.find(([, pattern]) => pattern.test(text));
-    if (match) { selected = match[0]; offset = 0; render(true); }
-  }
-  window.addEventListener('vibe-user-message', event => infer(event.detail));
-  render();
-})();

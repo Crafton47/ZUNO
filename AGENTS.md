@@ -1,5 +1,15 @@
 # AGENTS.md — ZUNO PLAYCORE Project Context & Architecture Guide
 
+## Exam Rescue (27 October 2026)
+
+Read `docs/EXAM-RESCUE.md` for the deterministic planner, reviewed AI topic extraction, preview/apply contract and limitations. `exam-engine.js` is pure scheduling logic; `exam-rescue.js` mounts behind the Study owner/notebook gates. Additive tables: `exam_plans`, `exam_previews`, `exam_task_links`, `study_quiz_results`. Generated missions reuse `schedule_tasks` and `study_tasks`; preserve completed work and unique plan/block links. `public/study-playcore.css` supplies the charcoal/lime Study theme; `public/exam-rescue.js` adds the four-section navigation and planner; `public/exam-next.js` supplies the Command Center shortcut. Run `npm test` (includes `tests/exam-rescue.test.cjs`); live tests use temporary records only.
+
+### Study Studio Navigation & Cold Boot Contract
+- **4 Autonomous Sections**: 1. `My Notebooks`, 2. `Ask ZUNO`, 3. `Practice Lab`, 4. `Exam Rescue`. All sections open directly from the top navigation bar, sidebar, Command Center shortcut (`public/exam-next.js`), direct URL (`/study?section=...`), or browser refresh without requiring an open notebook first.
+- **Cold URL Preservation**: Preserves `?notebook=<id>` query parameters during initial boot and section switching so deep-links or refreshes never clear the selected notebook before authentication/status resolves.
+- **Form Nesting Hygiene**: File upload form (`upload-form`) mounts to `#rescue-upload-host` only during Step 2 (The Material) and returns to `uploadHome` on Step 3 and landing views to avoid nested form conflicts or button collisions.
+- **Fallback Picker**: When entering `Ask ZUNO` or `Practice Lab` without a selected notebook, a contextual notebook selector (`#study-picker`) is displayed with 1-click notebook choices and create/upload shortcuts.
+
 ## Current repair additions
 
 Read `docs/PLAYCORE-REPAIR.md` for Study Studio architecture, API contract, setup and security boundaries. `study.js` is mounted behind the existing companion authentication middleware; `study.html` is the native `/study` frontend. Open Notebook 1.15.0 and SurrealDB 2.3.10 run in isolated digest-pinned Docker services (`deploy/compose.yml`). Access is limited to `STUDY_OWNER_ID` and all notebooks/material are ownership-checked. Do not enable public multi-user use or expose the service password to browsers.
@@ -7,6 +17,44 @@ Read `docs/PLAYCORE-REPAIR.md` for Study Studio architecture, API contract, setu
 `database.js` adds `study_notebooks`, `study_items`, `study_tasks`, `study_messages`; existing tasks actually live in `schedule_tasks` (the legacy schema description below is outdated). `public/playcore.js` controls mascot channels; `public/mascot.js`/`.css` render the vector interpretation of the original logo. `public/companion.js` supplies actual audio levels and call events.
 
 Run `npm test`. Opt-in `npm run test:study:live` uses the running service and real provider, with temporary ZUNO accounts/database. Never commit `.env`, `deploy/.env`, databases or runtime logs. Keep existing dashboard IDs and features.
+
+## Study Studio 2.0 — Learning Experience Upgrade (27 October 2026)
+
+`study.html` + `public/study.js` + `public/study.css` were overhauled. `study.js` received new backend endpoints. All existing notebooks, uploaded PDFs, notes, tasks, ownership and auth are preserved.
+
+### New backend endpoints (all in `study.js`, behind `STUDY_OWNER_ID` gate):
+- `POST /notebooks/:id/exam` — Exam Mode answers (`examType`: `3mark`, `5mark`, `10mark`, `revision`, `detailed`)
+- `POST /notebooks/:id/quiz` — Generate 5 MCQ questions as JSON from notebook content
+- `POST /notebooks/:id/flashcards/generate` — Generate 8 flashcards, saved to `study_flashcards`
+- `GET  /notebooks/:id/flashcards` — List saved flashcards for notebook
+- `PATCH /notebooks/:id/flashcards/:cardId` — Update difficulty (`easy`/`hard`/`new`)
+- `DELETE /notebooks/:id/flashcards/:cardId` — Remove one flashcard
+- `POST /notebooks/:id/xp` — Award XP (abuse-resistant: one award per event per notebook per hour)
+- `GET  /xp` — Total XP, level, and next-level threshold for user
+- `POST /notebooks/:id/feedback` — Helpful/not helpful on a study message
+- `POST /notebooks/:id/explain` — Explain Simply (simplified grounded answer, saved to history)
+
+### New DB tables (additive, never drops existing data):
+- `study_flashcards (id, notebook_id, user_id, front, back, difficulty, reviewed_at, created_at)`
+- `study_xp (id, user_id, notebook_id, event, earned, earned_at)`
+- `study_feedback (id, message_id, user_id, helpful, created_at)`
+
+### Frontend features:
+- **Tabbed interface**: Ask, Exam Mode, Quiz Me, Flashcards
+- **Markdown rendering**: Built-in safe renderer (headings, bold, italic, lists, tables, code blocks, blockquotes, links) — no raw AI HTML injected
+- **Answer toolbar**: Copy, Save as note, Explain Simply, Exam Answer shortcut, Quiz Me, Flashcards, 👍/👎 feedback
+- **Suggested prompts**: Chip buttons that pre-fill the question textarea
+- **Exam Mode**: 5 answer-length presets; renders in the Ask panel with exam badge
+- **Quiz Me**: Interactive MCQ, immediate feedback per answer, explanation, final score ring, retry
+- **Flashcards**: 3D flip animation, Easy/Hard difficulty marking, prev/next nav, card list with delete
+- **XP bar**: Level + progress bar in sidebar; XP toast on award; abuse-resistant (1-hour cooldown per event per notebook)
+- **ZUNO design system**: Space Grotesk headings, Plus Jakarta Sans body, full color palette, ambient glow, focus mode support, reduced motion
+
+### Security:
+- All AI-generated content is sanitized through the Markdown renderer before DOM insertion — no `innerHTML` from raw API responses
+- XP cannot be farmed: server enforces 1-hour cooldown per event per notebook
+- Feedback, flashcards, and XP are all ownership-checked server-side
+- No new public endpoints; all routes still behind `STUDY_OWNER_ID` gate
 
 > **For AI Agents:** Read this file first to understand the application architecture, schemas, API contracts, design system, and operational guidelines without needing to parse the entire codebase.
 

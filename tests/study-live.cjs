@@ -11,7 +11,7 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zuno-study-live-'));
 const base = 'http://localhost:32281';
 let child, browser, notebook, token;
 async function start(extra = {}) {
-  child = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: '32281', DB_PATH: path.join(dir, 'study-test.db'), JWT_SECRET: 'study-test-only', STUDY_ENABLED: 'true', STUDY_OWNER_ID: '1', ...extra }, stdio: 'pipe' });
+  child = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: '32281', DB_PATH: path.join(dir, 'study-test.db'), JWT_SECRET: 'study-test-only-test-test-test-test-test', STUDY_ENABLED: 'true', STUDY_OWNER_ID: '1', ...extra }, stdio: 'pipe' });
   child.stderr.on('data', b => process.stderr.write(b));
   await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(new Error('Server start timeout')), 15000); child.stdout.on('data', b => { if (String(b).includes('Server running')) { clearTimeout(timer); resolve(); } }); child.on('exit', () => { clearTimeout(timer); reject(new Error('Server exited')); }); });
 }
@@ -40,15 +40,22 @@ function pdf(text) {
   assert.equal((await req('/api/companion/study/notebooks', 'GET', null, other)).status, 403);
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage(); await page.goto(base + '/login.html'); await page.evaluate(t => localStorage.setItem('vibe_token', t), token);
-  await page.goto(base + '/chat'); await page.locator('#study-entry').click(); await page.waitForURL('**/study');
-  await page.goto(base + '/chat'); await page.locator('#study-nav').click(); await page.waitForURL('**/study');
+  // Both dashboard entry points open the in-dashboard Study shell without leaving /chat.
+  for (const entry of ['#study-entry', '#study-nav']) {
+    await page.goto(base + '/chat');
+    await page.locator(entry).click();
+    await page.locator('#study-shell').waitFor({ state: 'visible' });
+    await page.locator('#study-frame').waitFor();
+    assert.equal(new URL(page.url()).pathname, '/chat');
+  }
+  await page.goto(base + '/study');
   await page.locator('#new-notebook').click(); await page.locator('#edit-name').fill('DBMS integration test'); await page.locator('#edit-form button[type=submit]').click();
   try { await page.waitForURL('**/study?notebook=*'); } catch(e) { console.log('Create notebook UI errors:', await page.locator('#edit-error').textContent(), await page.locator('#error').textContent()); throw e; } notebook = new URL(page.url()).searchParams.get('notebook');
   await page.reload(); await page.locator('#notebook-name').filter({ hasText: 'DBMS integration test' }).waitFor();
   assert.equal((await req(study(), 'GET', null, other)).status, 403);
   const content = 'DBMS revision notes. Normalization reduces redundant data and prevents update anomalies. First normal form requires atomic values. Second normal form removes partial dependencies on composite keys. Third normal form removes transitive dependencies. The revision code for this notebook is JUNIPER-742.';
   await page.locator('#document').setInputFiles({ name: 'dbms-notes.txt', mimeType: 'text/plain', buffer: Buffer.from(content) });
-  await page.locator('#upload-form button').click(); await page.getByText('Uploaded. Processing status is shown below.').waitFor({ timeout: 60000 });
+  await page.locator('#upload-form button').click(); await page.getByText('Uploaded. Processing status shown below.').waitFor({ timeout: 60000 });
   const form = new FormData(); form.set('file', new Blob([pdf('Third normal form removes transitive dependencies. Test revision PDF.')], { type: 'application/pdf' }), 'dbms.pdf');
   assert.equal((await req(study('/sources'), 'POST', form)).status, 202);
   let data;
@@ -71,6 +78,27 @@ function pdf(text) {
   await page.waitForFunction(() => document.querySelectorAll('.answer').length === 2, null, { timeout: 150000 });
   assert.match(await page.locator('.answer').last().textContent(), /normal|dependenc/i);
   console.log('PASS: source inspection and real notebook summary.');
+  const analyzed = await req(study('/rescue/analyze'), 'POST', { sourceIds: data.items.map(i => i.id) });
+  assert.equal(analyzed.status, 200, JSON.stringify(analyzed.data));
+  assert.ok(analyzed.data.topics.length > 0, 'Actual extracted topics required');
+  assert.ok(analyzed.data.topics.every(t => data.items.some(i => i.id === t.sourceId && i.text.replace(/\s+/g,' ').includes(t.quote.replace(/\s+/g,' ')))));
+  const { DateTime } = require('luxon');
+  const today = DateTime.now().setZone('Asia/Kolkata').startOf('day');
+  const setup = { name:'DBMS live exam',timezone:'Asia/Kolkata',examAt:today.plus({days:3,hours:10}).toFormat("yyyy-MM-dd'T'HH:mm"),strategy:'balanced',sessionMinutes:45,breakMinutes:10,travelMinutes:60,topics:analyzed.data.topics,availability:[1,2,3].map(d=>({date:today.plus({days:d}).toISODate(),start:'07:00',end:'20:00',maxHours:5})) };
+  let preview = await req(study('/rescue/preview'),'POST',{setup});
+  assert.equal(preview.status,200,JSON.stringify(preview.data));
+  let result = await req(study('/rescue/apply'),'POST',{previewId:preview.data.previewId,confirm:true});
+  assert.equal(result.status,200,JSON.stringify(result.data));
+  const examPlan=result.data.plan;
+  assert.ok(examPlan.blocks.length>0);
+  await req('/api/companion/tasks/'+examPlan.blocks[0].taskId,'PATCH',{completed:true});
+  preview=await req(study('/rescue/preview'),'POST',{planId:examPlan.id,setup});
+  result=await req(study('/rescue/apply'),'POST',{previewId:preview.data.previewId,confirm:true});
+  assert.equal(result.status,200,JSON.stringify(result.data));
+  assert.equal(result.data.plan.blocks.find(b=>b.id===examPlan.blocks[0].id).status,'completed');
+  await page.goto(base+'/study?notebook='+notebook+'&section=rescue');
+  await page.locator('.rescue-block').first().waitFor();
+  console.log('PASS: real topic extraction with verbatim evidence, three-day exam schedule, linked missions, completion and confirmed rescheduling.');
   await page.screenshot({ path: path.join(dir, 'study-desktop.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 }); await page.screenshot({ path: path.join(dir, 'study-mobile.png'), fullPage: true });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

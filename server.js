@@ -7,34 +7,61 @@ const path    = require('path');
 const db      = require('./database');
 const http = require('http');
 const { attachCompanion } = require('./companion');
+const { signingSecret, rateLimit, accountKey } = require('./security');
 
 const app    = express();
 const server = http.createServer(app);
 const PORT   = process.env.PORT   || 3000;
-const SECRET = process.env.JWT_SECRET || 'fallback_secret_change_me';
+const SECRET = signingSecret();
 const EXPIRES = process.env.JWT_EXPIRES_IN || '7d';
 
 const SALT_ROUNDS = 12;
 
 // ── Middleware ─────────────────────────────────────────────────
-app.use(express.json());
+app.disable('x-powered-by');
+app.use(express.json({ limit: '100kb' }));
+app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  if (req.path.startsWith('/api')) {
+    res.set('X-Frame-Options', 'DENY');
+    res.set('Content-Security-Policy', "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'");
+  } else {
+    res.set('X-Frame-Options', 'SAMEORIGIN');
+    res.set('Content-Security-Policy', "base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'");
+  }
+  next();
+});
+const authIpLimit = rateLimit({ limit: 60, windowMs: 15 * 60000 });
+const authAccountLimit = rateLimit({ limit: 15, windowMs: 15 * 60000, key: accountKey });
+app.use(['/api/login', '/api/register'], authIpLimit, authAccountLimit);
+// A stray rejected promise (provider socket, background job) must never take the
+// whole app down and surface as a random crash; log it and keep serving.
+process.on('unhandledRejection', () => console.error('[UNHANDLED REJECTION] Background operation failed.'));
+server.on('error', error => { console.error('[SERVER ERROR]', error.code || error.message); process.exit(1); });
+// YouTube embeds require client identification; never suppress the cross-origin Referer.
+app.use((req, res, next) => { res.set('Referrer-Policy', 'strict-origin-when-cross-origin'); next(); });
 app.use('/assets', express.static(path.join(__dirname, 'public')));
 for (const page of ['login.html', 'register.html', 'index.html']) {
   app.get('/' + page, (req, res) => res.sendFile(path.join(__dirname, page)));
 }
 app.get('/ideas', (req, res) => res.sendFile(path.join(__dirname, 'legacy.html')));
 app.get('/study', (req, res) => res.sendFile(path.join(__dirname, 'study.html')));
+app.get('/radio', (req, res) => res.redirect('/chat#zuno-radio'));
 
 // ── JWT Verification Middleware ────────────────────────────────
 function requireAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];  // "Bearer <token>"
+  const token = typeof authHeader === 'string' && /^Bearer ([^\s]+)$/i.exec(authHeader)?.[1];
 
   if (!token) {
     return res.status(401).json({ error: 'No token provided. Please log in.' });
   }
   try {
-    const payload = jwt.verify(token, SECRET);
+    const payload = jwt.verify(token, SECRET, { algorithms: ['HS256'] });
+    if (!Number.isSafeInteger(payload.id) || payload.id < 1 || !db.findUserById(payload.id)) {
+      return res.status(401).json({ error: 'Please log in again.' });
+    }
     req.user = payload;
     next();
   } catch (err) {
@@ -79,8 +106,8 @@ app.post('/api/register', async (req, res) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return fail(res, 400, 'Invalid email address.');
     }
-    if (password.length < 6) {
-      return fail(res, 400, 'Password must be at least 6 characters.');
+    if (password.length < 12 || Buffer.byteLength(password, 'utf8') > 72) {
+      return fail(res, 400, 'Password must be at least 12 characters and at most 72 UTF-8 bytes.');
     }
 
     const cleanUsername = username.trim().toLowerCase();
@@ -88,21 +115,20 @@ app.post('/api/register', async (req, res) => {
 
     // === Check uniqueness ===
     if (db.usernameExists(cleanUsername)) {
-      return fail(res, 409, 'Username is already taken.');
+      return fail(res, 409, 'Unable to create an account with these details.');
     }
     if (db.emailExists(cleanEmail)) {
-      return fail(res, 409, 'An account with this email already exists.');
+      return fail(res, 409, 'Unable to create an account with these details.');
     }
 
     // === Hash password & create user ===
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
     const id   = db.createUser({ username: cleanUsername, email: cleanEmail, password: hash });
 
-    console.log(`[AUTH] New user registered: ${cleanUsername} (id=${id})`);
     return ok(res, { message: 'Account created! You can now log in.' });
 
   } catch (err) {
-    console.error('[REGISTER ERROR]', err.message);
+    console.error('[REGISTER ERROR] Account creation failed.');
     return fail(res, 500, 'Server error during registration. Please try again.');
   }
 });
@@ -119,13 +145,9 @@ app.post('/api/login', async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
     const user = db.findUserByEmail(cleanEmail);
 
-    if (!user) {
-      return fail(res, 401, 'No account found with that email address.');
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return fail(res, 401, 'Incorrect password. Please try again.');
+    const passwordMatch = await bcrypt.compare(password, user ? user.password : dummyPasswordHash);
+    if (!user || !passwordMatch) {
+      return fail(res, 401, 'Invalid email or password.');
     }
 
     // Issue JWT
@@ -135,14 +157,13 @@ app.post('/api/login', async (req, res) => {
       { expiresIn: EXPIRES }
     );
 
-    console.log(`[AUTH] User logged in: ${user.username} (id=${user.id})`);
     return ok(res, {
       token,
       user: { id: user.id, username: user.username, email: user.email }
     });
 
   } catch (err) {
-    console.error('[LOGIN ERROR]', err.message);
+    console.error('[LOGIN ERROR] Authentication failed.');
     return fail(res, 500, 'Server error during login. Please try again.');
   }
 });
@@ -162,9 +183,17 @@ app.post('/api/logout', requireAuth, (req, res) => {
 
 // ── Start Server (after DB is ready) ──────────────────────────
 attachCompanion(app, server, requireAuth);
+app.use((error, req, res, next) => {
+  console.error('[REQUEST ERROR]', req.method, Number(error?.status) || 500);
+  if (res.headersSent) return next(error);
+  const status = Number(error?.status);
+  res.status(status >= 400 && status < 600 ? status : 500).json({ error: 'Something went wrong. Please retry.' });
+});
 
+let dummyPasswordHash;
 async function startServer() {
   try {
+    dummyPasswordHash = await bcrypt.hash(require('crypto').randomBytes(32).toString('hex'), SALT_ROUNDS);
     await db.init();  // Load / create SQLite database (sql.js needs async WASM init)
     server.listen(PORT, () => {
       console.log(`\n🚀 Vibe AI Server running at: http://localhost:${PORT}`);
@@ -173,7 +202,7 @@ async function startServer() {
       console.log(`   → Database:     vibeai.db\n`);
     });
   } catch (err) {
-    console.error('[STARTUP ERROR]', err);
+    console.error('[STARTUP ERROR] Could not initialize the database or server. Check local configuration and file permissions.');
     process.exit(1);
   }
 }

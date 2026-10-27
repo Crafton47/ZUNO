@@ -1,5 +1,6 @@
 const { GoogleGenAI } = require('@google/genai');
 const { WebSocketServer, WebSocket } = require('ws');
+const { DateTime } = require('luxon');
 const crypto = require('crypto');
 const db = require('./database');
 const chatProvider = require('./chat-provider');
@@ -23,6 +24,54 @@ function providerError(error) {
   if (error.status === 429 || /quota|429|RESOURCE_EXHAUSTED/i.test(error.message || '')) return 'The AI provider quota is exhausted. Try again later or check your provider dashboard.';
   return 'Could not reach the AI provider. Check the server API key, model access, and internet connection, then retry.';
 }
+
+// Small chat models sometimes answer "done, I added it" without ever calling the
+// planner tool (and sometimes with a wrong date). The server decides from the
+// user's own words, forces the tool, and reports only what was actually stored.
+const ADD_OBJECTS = /\b(task|tasks|to-?do|todo|planner|list|mission|missions|reminder|appointment|homework|assignment|exam|test|study|class|meeting|call|email|bill|medicine|workout|gym|yoga|birthday|party|interview|deadline)\b/;
+function asksToAddTask(text) {
+  const value = String(text).toLowerCase();
+  const explicit = /\b(add|create|save|schedule|put|set)\b/.test(value) && ADD_OBJECTS.test(value);
+  const hindi = /\b(?:yaad\s*(?:dila|dilana|dilado|dilaye|rakhna|rakho)|dilana|daal\s*(?:do|de|dena)|add\s*kar)/.test(value);
+  const reminder = /\bremind me\b/.test(value) && !/\b(?:remind me (?:what|which|when)|what|which)\b/.test(value);
+  return explicit || hindi || reminder;
+}
+function savedTasks(results) {
+  const seen = new Set();
+  return results
+    .filter(entry => entry.name === 'add_tasks' && entry.result?.saved && Array.isArray(entry.result.tasks))
+    .flatMap(entry => entry.result.tasks)
+    .filter(task => task && task.id && !seen.has(task.id) && seen.add(task.id));
+}
+function confirmation(tasks, timezone) {
+  const z = scheduler.zone(timezone);
+  const items = tasks.map(task => `${task.title} — ${DateTime.fromISO(task.due_at, { zone: 'utc' }).setZone(z).toFormat('ccc d LLL, h:mm a')}`).join('; ');
+  return `Saved to your planner: ${items} (${z}).`;
+}
+function clockMinutes(text) {
+  const found = [], pattern = /\b(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b|\b([01]?\d|2[0-3]):([0-5]\d)\b/g;
+  for (const match of text.matchAll(pattern)) {
+    if (match[3]) {
+      let hour = Number(match[1]) % 12;
+      if (/^p/i.test(match[3])) hour += 12;
+      found.push(hour * 60 + Number(match[2] || 0));
+    } else found.push(Number(match[4]) * 60 + Number(match[5]));
+  }
+  return found;
+}
+function taskReply(modelText, tasks, timezone) {
+  const clean = typeof modelText === 'string' ? modelText.trim() : '';
+  const line = confirmation(tasks, timezone), z = scheduler.zone(timezone);
+  const names = tasks.every(task => clean.toLowerCase().includes(task.title.toLowerCase()));
+  const stamped = /\b\d{4}-\d{2}-\d{2}\b|\bT\d{2}:\d{2}/.test(clean);
+  const saved = new Set(tasks.map(task => { const due = DateTime.fromISO(task.due_at, { zone: 'utc' }).setZone(z); return due.hour * 60 + due.minute; }));
+  const accurate = clockMinutes(clean).every(minute => saved.has(minute));
+  return clean && names && !stamped && accurate ? `${clean} ${line}` : line;
+}
+function failureReply(results) {
+  const reason = results.map(entry => entry.result?.error).find(Boolean);
+  return `I couldn't save that to your planner${reason ? `: ${reason}` : ' — the planner action did not complete'}. Nothing was added. Please try again, or add it from Mission Control.`;
+}
 function attachCompanion(app, server, requireAuth) {
   const tickets = new Map();
   const active = new Set();
@@ -43,6 +92,7 @@ function attachCompanion(app, server, requireAuth) {
   app.get('/api/companion', (req, res) => res.json({ configured: configured(), chatConfigured: chatProvider.configured(), chatProvider: chatProvider.provider(), voices, notes: db.profile(req.user.id), messages: db.history(req.user.id) }));
   scheduler.attach(app);
   require('./study').attach(app);
+  require('./radio').attach(app);
   app.put('/api/companion/profile', (req, res) => {
     if (typeof req.body.notes !== 'string' || req.body.notes.length > 2000) return res.status(400).json({ error: 'Personal context must be at most 2,000 characters.' });
     db.saveProfile(req.user.id, req.body.notes.trim());
@@ -65,19 +115,46 @@ function attachCompanion(app, server, requireAuth) {
   app.post('/api/companion/chat', available, async (req, res) => {
     const text = req.body.text;
     if (typeof text !== 'string' || !text.trim() || text.length > 4000) return res.status(400).json({ error: 'Write a message between 1 and 4,000 characters.' });
-    const id = req.user.id;
+    const id = req.user.id, timezone = scheduler.zone(req.body.timezone);
     if (chats.has(id) || active.has(id)) return res.status(409).json({ error: 'Finish the current reply or call first.' });
     chats.add(id);
     try {
       const actionPrefix = crypto.randomUUID();
-      const response = { text: await chatProvider.reply(instruction(req.user, req.body.timezone), db.history(id).slice(-20), text, {
+      const results = [];
+      const gifted = scheduler.mentionsDeadline(text, timezone);
+      const actions = {
         tools: scheduler.tools,
-        run: (name, args, callId) => scheduler.runTool(id, name, args, req.body.timezone, actionPrefix + ':' + callId)
-      }) };
-      db.addMessage(id, 'user', text.trim());
-      db.addMessage(id, 'model', response.text);
+        run: (name, args, callId) => {
+          // Drop a deadline the model invented when the user never gave one.
+          const payload = name === 'add_tasks' && !gifted && Array.isArray(args?.tasks)
+            ? { ...args, tasks: args.tasks.map(task => task && typeof task === 'object' ? { ...task, when: null, dueAt: null } : task) }
+            : args;
+          const result = scheduler.runTool(id, name, payload, timezone, actionPrefix + ':' + callId);
+          results.push({ name, result });
+          return result;
+        }
+      };
+      const system = instruction(req.user, timezone), history = db.history(id).slice(-20);
+      const wantsTask = asksToAddTask(text);
+      let reply = await chatProvider.reply(system, history, text, { ...actions, force: wantsTask ? 'add_tasks' : undefined });
+      let saved = savedTasks(results);
+      if (wantsTask && !saved.length) {
+        results.length = 0;
+        try {
+          reply = await chatProvider.reply(`${system}
+Critical recovery: the user asked to add a task but no add_tasks call saved anything, even if a previous reply claimed success. Call add_tasks now for the user's request and copy their deadline words into "when". Never reply with success without a saved tool result.`, history, text, { ...actions, force: 'add_tasks' });
+          saved = savedTasks(results);
+        } catch { console.error('[CHAT] Task recovery failed.'); }
+      }
+      const claimsSave = /\b(?:i(?:'ve| have)? (?:added|saved|scheduled|created)|added to your (?:list|planner|to-?do)|on your (?:list|planner|to-?do))\b/i.test(reply || '');
+      const response = { text: (wantsTask || claimsSave) && !saved.length ? failureReply(results) : saved.length ? taskReply(reply, saved, timezone) : reply };
+      if (!response.text || !response.text.trim()) response.text = 'I am here. Tell me a little more and I will help.';
+      try {
+        db.addMessage(id, 'user', text.trim());
+        db.addMessage(id, 'model', response.text);
+      } catch { console.error('[CHAT] Could not save history.'); }
       res.json({ text: response.text });
-    } catch (error) { res.status(502).json({ error: providerError(error) }); }
+    } catch (error) { console.error('[CHAT] Reply failed.'); res.status(502).json({ error: providerError(error) }); }
     finally { chats.delete(id); }
   });
   app.post('/api/companion/call', available, (req, res) => {
@@ -118,8 +195,15 @@ function attachCompanion(app, server, requireAuth) {
       if (ended) return;
       ended = true;
       clearTimeout(connectTimer); clearTimeout(limitTimer);
-      if (message && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'error', message }));
-      session?.close(); flush(); active.delete(user.id); ws.close();
+      try {
+        if (message && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'error', message }));
+        try { session?.close(); } finally { flush(); }
+      } catch {
+        console.error('[VOICE] Session cleanup or history persistence failed.');
+      } finally {
+        active.delete(user.id);
+        ws.close();
+      }
     }
     const connectTimer = setTimeout(() => stop('Connection timed out. Please try again.'), 20000);
     const limitTimer = setTimeout(() => stop('This 15-minute call has ended. Start another call to continue.'), 15 * 60000);
@@ -144,23 +228,25 @@ function attachCompanion(app, server, requireAuth) {
       }, callbacks: {
         onmessage(message) {
           if (ended) return;
-          if (message.toolCall?.functionCalls?.length && session) {
-            send({ type: 'processing' });
-            const functionResponses = message.toolCall.functionCalls.slice(0, 10).map(fc => ({
-              id: fc.id, name: fc.name,
-              response: scheduler.runTool(user.id, fc.name, fc.args || {}, timezone, actionPrefix + ':' + fc.id)
-            }));
-            session.sendToolResponse({ functionResponses });
-            send({ type: 'tasksChanged' });
-          }
-          const content = message.serverContent;
-          if (content?.inputTranscription?.finished) send({ type: 'processing' });
-          if (content?.interrupted) { send({ type: 'interrupted' }); flush(); }
-          if (content?.inputTranscription?.text) { input += content.inputTranscription.text; send({ type: 'caption', role: 'user', text: content.inputTranscription.text }); }
-          if (content?.outputTranscription?.text) { output += content.outputTranscription.text; send({ type: 'caption', role: 'model', text: content.outputTranscription.text }); }
-          for (const part of content?.modelTurn?.parts || []) if (part.inlineData?.mimeType?.startsWith('audio/pcm')) send({ type: 'audio', data: part.inlineData.data });
-          if (content?.turnComplete) { flush(); send({ type: 'turnComplete' }); }
-          if (message.goAway) stop('The provider ended this session. Start another call to continue.');
+          try {
+            if (message.toolCall?.functionCalls?.length && session) {
+              send({ type: 'processing' });
+              const functionResponses = message.toolCall.functionCalls.slice(0, 10).map(fc => ({
+                id: fc.id, name: fc.name,
+                response: scheduler.runTool(user.id, fc.name, fc.args || {}, timezone, actionPrefix + ':' + fc.id)
+              }));
+              session.sendToolResponse({ functionResponses });
+              send({ type: 'tasksChanged' });
+            }
+            const content = message.serverContent;
+            if (content?.inputTranscription?.finished) send({ type: 'processing' });
+            if (content?.interrupted) { send({ type: 'interrupted' }); flush(); }
+            if (content?.inputTranscription?.text) { input = (input + content.inputTranscription.text).slice(-8000); send({ type: 'caption', role: 'user', text: content.inputTranscription.text }); }
+            if (content?.outputTranscription?.text) { output = (output + content.outputTranscription.text).slice(-8000); send({ type: 'caption', role: 'model', text: content.outputTranscription.text }); }
+            for (const part of content?.modelTurn?.parts || []) if (part.inlineData?.mimeType?.startsWith('audio/pcm')) send({ type: 'audio', data: part.inlineData.data });
+            if (content?.turnComplete) { flush(); send({ type: 'turnComplete' }); }
+            if (message.goAway) stop('The provider ended this session. Start another call to continue.');
+          } catch (error) { stop(providerError(error)); }
         },
         onerror: error => stop(providerError(error)),
         onclose: () => stop('Voice connection closed. You can start another call.')
