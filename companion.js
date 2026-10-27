@@ -91,7 +91,7 @@ function attachCompanion(app, server, requireAuth) {
   sweep.unref();
   server.on('close', () => clearInterval(sweep));
   app.use('/api/companion', (req, res, next) => {
-    if (req.path === '/live' || (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket')) {
+    if (req.path === '/live' || req.path.startsWith('/live') || req.url.includes('/live') || (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket')) {
       return next();
     }
     return requireAuth(req, res, async () => {
