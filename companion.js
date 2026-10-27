@@ -101,41 +101,11 @@ function attachCompanion(app, server, requireAuth) {
     });
   });
   app.get('/api/companion', async (req, res) => res.json({ configured: configured(), chatConfigured: chatProvider.configured(), chatProvider: chatProvider.provider(), voices, notes: await db.profile(req.user.id), messages: await db.history(req.user.id) }));
-  app.get('/api/companion/live/test-upgrade', (req, res) => {
-    const url = new URL(req.url, 'http://localhost');
-    let sameOrigin = false;
-    try {
-      if (!req.headers.origin) {
-        sameOrigin = true;
-      } else {
-        const originHost = new URL(req.headers.origin).host;
-        const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-        sameOrigin = originHost === req.headers.host ||
-          originHost === 'zuno.runs-on.dev' ||
-          originHost.endsWith('.runs-on.dev') ||
-          originHost.endsWith('.vercel.app') ||
-          allowed.includes(originHost);
-      }
-    } catch {}
-    const ticket = url.searchParams.get('ticket');
-    let entry = null, verifyError = null;
-    if (ticket) {
-      try {
-        const decoded = jwt.verify(ticket, signingSecret());
-        if (decoded && decoded.user) {
-          entry = { user: decoded.user, timezone: decoded.timezone, voice: decoded.voice, expires: Date.now() + 60000 };
-        }
-      } catch (err) { verifyError = err.message; }
+  app.get('/api/companion/live', (req, res) => {
+    if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') {
+      return handleLiveUpgrade(req, req.socket, Buffer.alloc(0), res);
     }
-    const isLivePath = true;
-    res.json({
-      url: req.url,
-      sameOrigin,
-      hasEntry: Boolean(entry),
-      verifyError,
-      active: entry ? active.has(entry.user.id) : null,
-      chats: entry ? chats.has(entry.user.id) : null
-    });
+    res.status(426).json({ error: 'Upgrade Required. Live voice requires a WebSocket connection.' });
   });
   scheduler.attach(app);
   require('./study').attach(app);
@@ -219,7 +189,8 @@ Critical recovery: the user asked to add a task but no add_tasks call saved anyt
     res.json({ ticket });
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 65536 });
-  server.on('upgrade', (req, socket, head) => {
+
+  function handleLiveUpgrade(req, socket, head = Buffer.alloc(0), res = null) {
     const url = new URL(req.url, 'http://localhost');
     let sameOrigin = false;
     try {
@@ -251,13 +222,18 @@ Critical recovery: the user asked to add a task but no add_tasks call saved anyt
     }
     const isLivePath = url.pathname === '/api/companion/live' || url.pathname.endsWith('/live') || (url.pathname.startsWith('/api') && Boolean(entry));
     if (!isLivePath || !sameOrigin || !entry || (entry.expires && entry.expires < Date.now()) || active.has(entry.user.id) || chats.has(entry.user.id)) {
+      if (res) {
+        return res.status(401).json({ error: 'Unauthorized call ticket' });
+      }
       socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');
       socket.destroy();
       return;
     }
     active.add(entry.user.id);
     wss.handleUpgrade(req, socket, head, ws => connect(ws, entry));
-  });
+  }
+
+  server.on('upgrade', (req, socket, head) => handleLiveUpgrade(req, socket, head));
   async function connect(ws, { user, voice, timezone }) {
     const actionPrefix = crypto.randomUUID();
     let session, ended = false, ready = false;
