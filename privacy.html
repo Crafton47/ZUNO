@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — ZUNO 2.0</title>
+  <meta name="description" content="ZUNO 2.0 Privacy Policy. Learn what data ZUNO collects, how it is used, and your choices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/legal.css" />
+  <link rel="icon" type="image/jpeg" href="/assets/brand/zuno-logo.jpeg" />
+
+<link rel="stylesheet" href="/assets/mascot.css" />
+</head>
+<body class="legal-privacy">
+<a class="skip-link" href="#document">Skip to policy content</a>
+<div class="reading-track" aria-hidden="true"><div id="reading-fill"></div></div>
+<header class="site-header"><a class="wordmark" href="/login.html" aria-label="ZUNO home">zuno<span aria-hidden="true">&#10035;</span></a><span class="header-note">THE ZUNO SMALL PRINT</span><a class="back-link" href="/login.html">Back to login <span aria-hidden="true">&#8599;</span></a></header>
+<main>
+<section class="legal-hero" aria-labelledby="page-title">
+<div class="hero-text"><p class="eyebrow">THE DETAILS MATTER. SO DO YOU.</p><h1 id="page-title">Privacy<br>Policy<span class="title-dot">.</span></h1><p class="hero-intro">What ZUNO collects, how it is used, and the choices available to you.</p><div class="document-meta"><span>Effective October 29, 2026</span><span>Updated October 29, 2026</span></div></div>
+<div class="hero-art" aria-hidden="true"><div class="orb-disc"></div><div class="orbit"></div><span class="floating-star">&#10035;</span><div class="legal-mascot" data-zuno-character></div><span class="paper-sticker">YOUR SPACE.<br>THE DETAILS.</span><span class="art-caption">ZUNO 2.0 / THE LEGAL EDITION</span></div>
+</section>
+<div class="document-layout">
+<aside class="contents-panel"><details open><summary>On this page <span class="contents-toggle" aria-hidden="true">+</span></summary><nav aria-label="Table of contents"><ol><li><a href="#section-1"><span>01</span>What We Collect</a></li>
+<li><a href="#section-2"><span>02</span>How We Use Your Data</a></li>
+<li><a href="#section-3"><span>03</span>Where Your Data Goes</a></li>
+<li><a href="#section-4"><span>04</span>Cookies, Sessions, and Analytics</a></li>
+<li><a href="#section-5"><span>05</span>Data Retention and Deletion</a></li>
+<li><a href="#section-6"><span>06</span>Children's Privacy</a></li>
+<li><a href="#section-7"><span>07</span>Security Measures</a></li>
+<li><a href="#section-8"><span>08</span>Changes to This Policy</a></li>
+<li><a href="#section-9"><span>09</span>Contact</a></li>
+</ol></nav></details><div class="reading-status"><span>YOUR READING PROGRESS</span><output id="reading-percent" aria-label="Reading progress">0%</output></div><a class="companion-link" href="/terms.html">Also in the small print<br><strong>Terms of Service <span aria-hidden="true">&#8599;</span></strong></a></aside>
+<article id="document" tabindex="-1" aria-label="Privacy Policy"><div class="document-kicker"><span>09 SECTIONS / PRIVACY POLICY</span><span aria-hidden="true">&#8600;</span></div><section class="legal-section" id="section-1" tabindex="-1"><h2>1. What We Collect</h2>
+        <p>ZUNO collects the following information to operate the Service:</p>
+        <ul>
+          <li><strong>Account information:</strong> Your username, email address, and password. Passwords are hashed with bcrypt (12 salt rounds) and are never stored in plain text.</li>
+          <li><strong>Session token:</strong> Upon login, a stateless JWT (JSON Web Token) is generated and stored in your browser's <code>localStorage</code> or <code>sessionStorage</code>. The token contains your user ID, username, and email.</li>
+          <li><strong>Personal context notes:</strong> You may optionally save personal context notes (up to 2,000 characters) that are used to personalize AI chat responses. These are stored per account.</li>
+          <li><strong>Chat history:</strong> The 60 most recent messages in your chat with the AI companion are stored per account to maintain conversation context.</li>
+          <li><strong>Mission data:</strong> Your daily planner tasks, deadlines, reminders, and completion status.</li>
+          <li><strong>Study data (optional):</strong> When Study Studio is enabled for your account, you may upload PDF documents, create notebooks, generate exam answers, quizzes, flashcards, and earn XP. All notebook content is owned by you and stored under your user ID.</li>
+        </ul></section>
+<section class="legal-section" id="section-2" tabindex="-1"><h2>2. How We Use Your Data</h2>
+        <p>Your data is used solely to provide and improve the Service:</p>
+        <ul>
+          <li>Authenticate your account and authorize access to your data.</li>
+          <li>Maintain your chat history and personal context so the AI can respond in an informed way.</li>
+          <li>Schedule and track your tasks, deadlines, and reminders.</li>
+          <li>Generate AI-powered study content (exam answers, quizzes, flashcards) from your uploaded notebooks.</li>
+          <li>Award and track study XP (abuse-resistant: one award per event type per notebook per hour).</li>
+          <li>Operate the voice call feature, which uses single-use, 30-second cryptographic tickets that expire automatically.</li>
+        </ul></section>
+<section class="legal-section" id="section-3" tabindex="-1"><h2>3. Where Your Data Goes</h2>
+        <h3>Self-hosted (local) mode</h3>
+        <p>When run locally, ZUNO uses SQLite (<code>sql.js</code>) persisted to a local <code>vibeai.db</code> file on your machine. No data leaves your device.</p>
+
+        <h3>Supabase mode (production)</h3>
+        <p>When <code>DATABASE_URL</code> is configured, ZUNO uses Supabase PostgreSQL to store account and application data. Data is stored on Supabase servers and is subject to Supabase's own security and privacy practices.</p>
+
+        <h3>AI providers</h3>
+        <p>To generate responses, your chat messages, personal context notes, and Study Studio questions are sent to third-party AI providers:</p>
+        <ul>
+          <li><strong>Google Gemini:</strong> Used for voice calls and as the default chat model. API keys are kept on the server and never exposed to browsers.</li>
+          <li><strong>NVIDIA Nemotron:</strong> Optionally used for chat if <code>CHAT_PROVIDER=nvidia</code> is configured. API key is server-side only.</li>
+        </ul>
+        <p>AI providers process your data according to their own privacy policies. ZUNO does not control how AI providers handle your data.</p>
+
+        <div class="highlight">
+          Audio from live voice calls is processed in memory only. No audio recordings are saved to disk. Live voice sessions are automatically capped at 15 minutes.</div></section>
+<section class="legal-section" id="section-4" tabindex="-1"><h2>4. Cookies, Sessions, and Analytics</h2>
+<p>ZUNO uses your browser's <code>localStorage</code> and <code>sessionStorage</code> to persist your JWT token and basic user info between page loads. No first-party cookies, analytics scripts, or tracking pixels are used. No third-party analytics services are integrated.</p></section>
+<section class="legal-section" id="section-5" tabindex="-1"><h2>5. Data Retention and Deletion</h2>
+<p>ZUNO does not have automated account deletion or data export features. If you wish to delete your account or request a data export, please open an issue on the GitHub repository (<a href="https://github.com/Crafton47/ZUNO">https://github.com/Crafton47/ZUNO</a>). The copyright owner may manually process such requests at their discretion. Note that data stored in your local <code>vibeai.db</code> file can be deleted by removing the file, and browser-stored tokens can be cleared by removing <code>vibe_token</code> and <code>vibe_user</code> from localStorage/sessionStorage.</p></section>
+<section class="legal-section" id="section-6" tabindex="-1"><h2>6. Children's Privacy</h2>
+<p>ZUNO is not directed to children under 13 (or under the age of digital consent in your jurisdiction). If you believe we have collected personal information from a child, please contact us through the GitHub repository and we will investigate.</p></section>
+<section class="legal-section" id="section-7" tabindex="-1"><h2>7. Security Measures</h2>
+<p>ZUNO implements reasonable security measures:</p>
+<ul>
+<li>Passwords are hashed with bcrypt at 12 salt rounds.</li>
+<li>JWT tokens are signed with a server-side secret (<code>JWT_SECRET</code>) and verified on every protected request.</li>
+<li>Rate limiting is applied to login and registration endpoints (IP-based and account-based).</li>
+<li>Generic error messages are returned for failed logins to avoid leaking whether an account exists.</li>
+<li>JWT tokens are not accepted via cookies; they must be provided via the <code>Authorization</code> header.</li>
+<li>Security headers including <code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>, and <code>Content-Security-Policy</code> are set on responses.</li>
+</ul>
+<p>No system is completely secure. While ZUNO takes reasonable steps to protect your data, we cannot guarantee absolute security.</p></section>
+<section class="legal-section" id="section-8" tabindex="-1"><h2>8. Changes to This Policy</h2>
+<p>This Privacy Policy may be updated from time to time. The "Last updated" date at the top reflects the most recent revision. Changes are effective upon posting. For significant changes, we may notify you through the GitHub repository.</p></section>
+<section class="legal-section" id="section-9" tabindex="-1"><h2>9. Contact</h2>
+<p>For privacy-related questions, please reach out through the official ZUNO project repository: <a href="https://github.com/Crafton47/ZUNO">https://github.com/Crafton47/ZUNO</a>.</p></section>
+<div class="document-end"><span class="end-star" aria-hidden="true">&#10035;</span><div><h2>All caught up.</h2><p>Thanks for taking a closer look.</p></div><a href="#page-title">Back to top &#8593;</a></div></article>
+</div>
+</main>
+<footer class="site-footer"><div><a class="wordmark" href="/login.html" aria-label="ZUNO home">zuno<span aria-hidden="true">&#10035;</span></a><p>A little companion. A lot of possibility.</p></div><nav aria-label="Footer"><a href="/privacy.html" aria-current="page">Privacy Policy</a><a href="/terms.html" >Terms of Service</a><a href="/login.html">Back to login &#8599;</a></nav><span class="footer-edition">ZUNO 2.0<br>YOUR EVERYDAY SIDEKICK</span></footer>
+<script src="/assets/mascot.js"></script><script src="/assets/legal.js"></script>
+</body></html>

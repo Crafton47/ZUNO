@@ -1,532 +1,65 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Initialize Workspace — ZUNO 2.0</title>
-  <meta name="description" content="Create your ZUNO 2.0 account — your futuristic AI workspace and productivity companion." />
+  <title>Create your space â€” ZUNO 2.0</title>
+  <meta name="description" content="Create your ZUNO 2.0 account â€” your AI workspace and productivity companion." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <link rel="stylesheet" href="/assets/mascot.css" />
+  <link rel="stylesheet" href="/assets/auth.css" />
+  <link rel="icon" type="image/jpeg" href="/assets/brand/zuno-logo.jpeg" />
 
-    :root {
-      --bg: #080914;
-      --surface: #17152D;
-      --elevated: #22203A;
-      --elevated-soft: #1c1934;
-      --violet: #925BFF;
-      --violet-deep: #6034c9;
-      --cyan: #39E8FF;
-      --lime: #D7FF65;
-      --pink: #FF73C6;
-      --text: #F7F5FF;
-      --muted: #B5AED1;
-      --border: #373055;
-      --border-bright: rgba(57, 232, 255, 0.28);
-      --input-bg: rgba(23, 21, 45, 0.85);
-      --radius-lg: 24px;
-      --radius-md: 16px;
-      --radius-sm: 10px;
-      --display: 'Space Grotesk', -apple-system, sans-serif;
-      --body: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    }
-
-    html, body {
-      min-height: 100vh;
-      font-family: var(--body);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-
-    /* Ambient cyber backdrop */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(850px 520px at 85% 10%, rgba(146, 91, 255, 0.18), transparent 60%),
-        radial-gradient(750px 500px at 15% 85%, rgba(57, 232, 255, 0.12), transparent 60%),
-        radial-gradient(500px 400px at 50% 50%, rgba(215, 255, 101, 0.04), transparent 65%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Cyber matrix grid overlay */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(146, 91, 255, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(146, 91, 255, 0.035) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: radial-gradient(circle at center, black 40%, transparent 85%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .page {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 36px 18px;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 480px;
-      background: linear-gradient(165deg, rgba(34, 32, 58, 0.95), rgba(23, 21, 45, 0.98));
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 38px 34px 34px;
-      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(146, 91, 255, 0.15);
-      animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(18px) scale(0.98); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .card-header {
-      text-align: center;
-      margin-bottom: 22px;
-    }
-
-    .brand-mark {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .brand-orb {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--violet), var(--violet-deep));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--display);
-      font-size: 22px;
-      font-weight: 700;
-      color: #fff;
-      box-shadow: 0 0 24px rgba(146, 91, 255, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .brand-title {
-      font-family: var(--display);
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: var(--text);
-    }
-
-    .brand-version {
-      font-family: var(--display);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 6px;
-      background: rgba(57, 232, 255, 0.12);
-      color: var(--cyan);
-      border: 1px solid rgba(57, 232, 255, 0.3);
-      letter-spacing: 0.05em;
-    }
-
-    .card-eyebrow {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--cyan);
-      margin-bottom: 6px;
-    }
-
-    .card-header h1 {
-      font-family: var(--display);
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.02em;
-      margin-bottom: 6px;
-    }
-
-    .card-header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    /* Feature pills */
-    .perks {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 22px;
-    }
-
-    .perk {
-      font-size: 11.5px;
-      font-weight: 600;
-      color: var(--muted);
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: rgba(23, 21, 45, 0.7);
-      border: 1px solid rgba(55, 48, 85, 0.7);
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    /* Form controls */
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 7px;
-    }
-
-    .input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .input-icon {
-      position: absolute;
-      left: 14px;
-      font-size: 14px;
-      color: var(--muted);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .input-wrap input {
-      width: 100%;
-      height: 46px;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0 42px 0 42px;
-      font-size: 14px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    }
-
-    .input-wrap input::placeholder {
-      color: rgba(181, 174, 209, 0.45);
-    }
-
-    .input-wrap input:focus {
-      border-color: var(--cyan);
-      background: rgba(34, 32, 58, 0.95);
-      box-shadow: 0 0 0 3px rgba(57, 232, 255, 0.18), 0 0 16px rgba(57, 232, 255, 0.1);
-    }
-
-    .input-wrap input.valid {
-      border-color: rgba(215, 255, 101, 0.5);
-    }
-
-    .input-wrap input.invalid-field {
-      border-color: rgba(255, 115, 198, 0.5);
-    }
-
-    .toggle-pass {
-      position: absolute;
-      right: 12px;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 15px;
-      padding: 4px;
-      border-radius: 6px;
-      transition: color 0.2s;
-    }
-
-    .toggle-pass:hover {
-      color: var(--text);
-    }
-
-    .toggle-pass:focus-visible {
-      outline: 2px solid var(--cyan);
-    }
-
-    .field-hint {
-      font-size: 12px;
-      margin-top: 5px;
-      display: none;
-    }
-
-    .field-hint.error {
-      color: var(--pink);
-    }
-
-    .field-hint.ok {
-      color: var(--lime);
-    }
-
-    /* Password strength bar */
-    .strength-bar-wrap {
-      height: 4px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 2px;
-      margin-top: 7px;
-      overflow: hidden;
-    }
-
-    .strength-bar {
-      height: 100%;
-      width: 0%;
-      border-radius: 2px;
-      transition: width 0.3s ease, background-color 0.3s ease;
-    }
-
-    .strength-label {
-      font-size: 11.5px;
-      color: var(--muted);
-      margin-top: 4px;
-      text-align: right;
-    }
-
-    /* Terms */
-    .terms-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 12.5px;
-      color: var(--muted);
-      margin-bottom: 22px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .terms-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--violet);
-      margin-top: 2px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .terms-row a {
-      color: var(--cyan);
-      text-decoration: none;
-    }
-
-    .terms-row a:hover {
-      text-decoration: underline;
-    }
-
-    /* Primary Action Button */
-    .btn-primary {
-      width: 100%;
-      height: 48px;
-      border: none;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, var(--violet) 0%, #7c3aed 100%);
-      color: #ffffff;
-      font-family: var(--display);
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 6px 20px rgba(146, 91, 255, 0.35);
-      transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 26px rgba(146, 91, 255, 0.5), 0 0 12px rgba(57, 232, 255, 0.3);
-    }
-
-    .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn-primary:focus-visible {
-      outline: 2px solid var(--cyan);
-      outline-offset: 2px;
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* Spinner */
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      display: none;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Alerts */
-    .alert {
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 18px;
-      display: none;
-      animation: alertIn 0.25s both;
-    }
-
-    @keyframes alertIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .alert-error {
-      background: rgba(255, 115, 198, 0.12);
-      border: 1px solid rgba(255, 115, 198, 0.35);
-      color: #ff9ed6;
-    }
-
-    .alert-success {
-      background: rgba(215, 255, 101, 0.12);
-      border: 1px solid rgba(215, 255, 101, 0.35);
-      color: #e5ff94;
-    }
-
-    /* Divider */
-    .divider {
-      margin: 24px 0 18px;
-      text-align: center;
-      position: relative;
-    }
-
-    .divider::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 50%;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .divider span {
-      position: relative;
-      background: #191733;
-      padding: 0 12px;
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: 0.04em;
-    }
-
-    /* Footer text */
-    .footer-text {
-      text-align: center;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .footer-text a {
-      color: var(--cyan);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.2s, text-shadow 0.2s;
-    }
-
-    .footer-text a:hover {
-      color: #ffffff;
-      text-shadow: 0 0 10px rgba(57, 232, 255, 0.6);
-    }
-
-    .footer-text a:focus-visible {
-      outline: 2px solid var(--cyan);
-      border-radius: 4px;
-    }
-  </style>
-<link rel="icon" type="image/jpeg" href="/assets/brand/zuno-logo.jpeg"></head>
-<body>
-  <div class="page">
-    <div class="card">
-      <div class="card-header">
-        <div class="brand-mark">
-          <img src="/assets/brand/zuno-logo.jpeg" alt="ZUNO logo" width="84" height="84" style="border-radius:18px;object-fit:contain">
-          <span class="brand-title">ZUNO</span>
-          <span class="brand-version">2.0</span>
-        </div>
-        <span class="card-eyebrow">WORKSPACE SETUP</span>
-        <h1>Create your space</h1>
-        <p>Unlock AI voice companion, missions & earned rewards</p>
+</head>
+<body class="auth-register">
+  <div class="page-backdrop"></div>
+  <main class="auth-page">
+<section class="auth-hero" aria-label="Meet ZUNO">
+      <a class="logo" href="/login.html" aria-label="ZUNO home">zuno<span class="logo-star">&#10035;</span><span class="logo-version">YOUR EVERYDAY SIDEKICK</span></a>
+      <div class="hero-copy"><span class="eyebrow">A LITTLE COMPANION. A LOT OF POSSIBILITY.</span><h1>Big ideas.<br>Better days<span class="period">.</span></h1><p>A little focus. A little fun. A whole lot of you.</p></div>
+      <div class="hero-art"><div class="art-disc"></div><div class="orbit-line"></div><span class="art-star" aria-hidden="true">&#10035;</span><span class="art-cross" aria-hidden="true">+</span><div class="mascot-parallax"><button type="button" class="mascot-button zuno-mascot" aria-label="Say hello to ZUNO"><span data-zuno-character></span></button></div><span class="hello-note">hey, you. let's do this. <span aria-hidden="true">&#8599;</span></span><span class="art-coordinate">A MIND OF YOUR OWN.<br>A SIDEKICK BY YOUR SIDE.</span></div>
+      <div class="hero-bottom"><span><i></i> GOOD ENERGY. GREAT COMPANY.</span><span>MEET YOUR MOMENT &#8599;</span></div>
+    </section>
+    <section class="form-panel"><nav class="auth-switch" aria-label="Account access"><a href="/login.html" >Sign in</a><a href="/register.html" aria-current="page">Create account <span aria-hidden="true">&#8599;</span></a></nav>
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <span class="eyebrow">YOUR NEXT CHAPTER</span>
+        <h1>Make room<br> for you.</h1>
+        <p>A fresh start, with a sidekick. Let&#8217;s get you set up.</p>
       </div>
 
-      <div class="perks">
-        <span class="perk">🎙 Live Voice AI</span>
-        <span class="perk">◎ Mission Control</span>
-        <span class="perk">🎬 Movie Rewards</span>
-        <span class="perk">✦ Vibe Check</span>
-      </div>
+      <div role="alert" class="alert alert-error" id="error-alert"></div>
+      <div role="status" class="alert alert-success" id="success-alert"></div>
 
-      <div class="alert alert-error" id="error-alert"></div>
-      <div class="alert alert-success" id="success-alert"></div>
-
-      <form id="register-form" novalidate>
-        <!-- Username -->
+      <form id="register-form" novalidate autocomplete="on">
         <div class="form-group">
           <label for="username">Username</label>
           <div class="input-wrap">
-            <span class="input-icon" aria-hidden="true">👤</span>
-            <input type="text" id="username" name="username"
-                   placeholder="cooluser123" autocomplete="username" required />
+            <span class="input-icon" aria-hidden="true">&#128104;</span>
+            <input type="text" id="username" name="username" autocomplete="username" placeholder="cooluser123" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+" />
           </div>
           <div class="field-hint" id="username-hint"></div>
         </div>
 
-        <!-- Email -->
         <div class="form-group">
           <label for="email">Email address</label>
           <div class="input-wrap">
-            <span class="input-icon" aria-hidden="true">✉</span>
-            <input type="email" id="email" name="email"
-                   placeholder="you@domain.com" autocomplete="email" required />
+            <span class="input-icon" aria-hidden="true">&#9993;</span>
+            <input type="email" id="email" name="email" autocomplete="email" placeholder="you@domain.com" required minlength="3" maxlength="254" />
           </div>
           <div class="field-hint" id="email-hint"></div>
         </div>
 
-        <!-- Password -->
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-wrap">
-            <span class="input-icon" aria-hidden="true">🔒</span>
-            <input type="password" id="password" name="password"
-                   placeholder="Min 12 characters" autocomplete="new-password" required />
-            <button type="button" class="toggle-pass" id="toggle-pass1" aria-label="Toggle password">👁</button>
+            <span class="input-icon" aria-hidden="true">&#128272;</span>
+            <input type="password" id="password" name="password" autocomplete="new-password" placeholder="Min 12 characters" required minlength="12" maxlength="72" />
+            <button type="button" class="toggle-pass" id="toggle-pass1" aria-label="Toggle password visibility">
+              <span aria-hidden="true">Show</span>
+            </button>
           </div>
           <div class="strength-bar-wrap">
             <div class="strength-bar" id="strength-bar"></div>
@@ -534,124 +67,125 @@
           <div class="strength-label" id="strength-label"></div>
         </div>
 
-        <!-- Confirm Password -->
         <div class="form-group">
           <label for="confirm">Confirm Password</label>
           <div class="input-wrap">
-            <span class="input-icon" aria-hidden="true">🔑</span>
-            <input type="password" id="confirm" name="confirm"
-                   placeholder="Repeat your password" autocomplete="new-password" required />
-            <button type="button" class="toggle-pass" id="toggle-pass2" aria-label="Toggle password">👁</button>
+            <span class="input-icon" aria-hidden="true">&#128271;</span>
+            <input type="password" id="confirm" name="confirm" autocomplete="new-password" placeholder="Repeat your password" required minlength="12" />
+            <button type="button" class="toggle-pass" id="toggle-pass2" aria-label="Toggle password visibility">
+              <span aria-hidden="true">Show</span>
+            </button>
           </div>
           <div class="field-hint" id="confirm-hint"></div>
         </div>
 
-        <!-- Terms -->
-        <label class="terms-row" for="terms">
+        <label class="checkbox-row" style="margin-bottom:1.5rem;" for="terms">
           <input type="checkbox" id="terms" name="terms" required />
-          I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Guidelines</a>
+          <span>I agree to the <a href="/terms.html">Terms of Service</a> and <a href="/privacy.html">Privacy Policy</a></span>
         </label>
 
         <button type="submit" class="btn-primary" id="register-btn">
-          <div class="spinner" id="spinner"></div>
-          <span id="btn-text">Create Account ↗</span>
+          <span id="btn-text">Create Account</span>
         </button>
       </form>
 
       <div class="divider"><span>Already have a space?</span></div>
 
       <div class="footer-text">
-        <a href="/login.html">← Sign in to existing workspace</a>
+        <a href="/login.html">&#8592; Sign in to existing workspace</a>
       </div>
     </div>
-  </div>
+    <footer class="legal-footer"><span>YOUR SPACE TO BECOME.</span><div><a href="/terms.html">Terms of Service</a><a href="/privacy.html">Privacy Policy</a></div></footer></section>
+  </main>
 
   <script>
-    // If already logged in, go to chat
-    const existingToken = localStorage.getItem('vibe_token');
-    if (existingToken) {
-      fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + existingToken } })
-        .then(r => r.ok ? window.location.replace('/chat') : null)
-        .catch(() => {});
-    }
+    (function () {
+      var token = localStorage.getItem('vibe_token');
+      if (token) {
+        fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } })
+          .then(function (r) { if (r.ok) window.location.replace('/chat'); })
+          .catch(function () {});
+      }
+    })();
 
-    const usernameEl = document.getElementById('username');
-    const emailEl    = document.getElementById('email');
-    const passEl     = document.getElementById('password');
-    const confirmEl  = document.getElementById('confirm');
-    const errorAlert = document.getElementById('error-alert');
-    const successAlert = document.getElementById('success-alert');
-    const spinner    = document.getElementById('spinner');
-    const btnText    = document.getElementById('btn-text');
-    const registerBtn = document.getElementById('register-btn');
+    var usernameEl = document.getElementById('username');
+    var emailEl    = document.getElementById('email');
+    var passEl     = document.getElementById('password');
+    var confirmEl  = document.getElementById('confirm');
+    var errorAlert = document.getElementById('error-alert');
+    var successAlert = document.getElementById('success-alert');
+    var btnText    = document.getElementById('btn-text');
+    var registerBtn = document.getElementById('register-btn');
 
-    // Toggle password visibility
     function makeToggle(btnId, inputEl) {
-      document.getElementById(btnId).addEventListener('click', () => {
-        const isPass = inputEl.type === 'password';
+      document.getElementById(btnId).addEventListener('click', function () {
+        var isPass = inputEl.type === 'password';
         inputEl.type = isPass ? 'text' : 'password';
-        document.getElementById(btnId).textContent = isPass ? '🔒' : '👁';
+        var icon = document.getElementById(btnId).querySelector('span');
+        icon.textContent = isPass ? 'Hide' : 'Show';
+      icon.parentElement.setAttribute('aria-label', isPass ? 'Hide password' : 'Show password');
       });
     }
     makeToggle('toggle-pass1', passEl);
     makeToggle('toggle-pass2', confirmEl);
 
-    // Password strength
-    passEl.addEventListener('input', () => {
-      const v = passEl.value;
-      const bar   = document.getElementById('strength-bar');
-      const label = document.getElementById('strength-label');
+    passEl.addEventListener('input', function () {
+      var v = passEl.value;
+      var bar = document.getElementById('strength-bar');
+      var label = document.getElementById('strength-label');
 
-      if (!v) {
-        bar.style.width = '0%';
-        label.textContent = '';
-        return;
-      }
+      if (!v) { bar.style.width = '0%'; label.textContent = ''; return; }
 
-      let score = 0;
-      if (v.length >= 6)  score++;
+      var score = 0;
+      if (v.length >= 6) score++;
       if (v.length >= 10) score++;
       if (/[A-Z]/.test(v)) score++;
       if (/[0-9]/.test(v)) score++;
       if (/[^A-Za-z0-9]/.test(v)) score++;
 
-      const configs = [
-        { w: '20%',  color: '#ff73c6', text: 'Weak' },
+      var configs = [
+        { w: '20%',  color: '#ff6b9d', text: 'Weak' },
         { w: '40%',  color: '#ff9ed6', text: 'Fair' },
-        { w: '65%',  color: '#ffd166', text: 'Good' },
+        { w: '65%',  color: '#ffce6b', text: 'Good' },
         { w: '85%',  color: '#39e8ff', text: 'Strong' },
-        { w: '100%', color: '#d7ff65', text: 'Secure' },
+        { w: '100%', color: '#d4ff33', text: 'Secure' }
       ];
 
-      const c = configs[Math.min(score - 1, 4)] || configs[0];
+      var c = configs[Math.min(score - 1, 4)] || configs[0];
       bar.style.width = c.w;
       bar.style.backgroundColor = c.color;
       label.textContent = 'Strength: ' + c.text;
       label.style.color = c.color;
     });
 
-    // Username blur check
-    usernameEl.addEventListener('blur', () => {
-      const v = usernameEl.value.trim();
-      const hint = document.getElementById('username-hint');
+    usernameEl.addEventListener('blur', function () {
+      var v = usernameEl.value.trim();
+      var hint = document.getElementById('username-hint');
       if (!v) { showFieldHint(hint, 'Username is required.', 'error', usernameEl); return; }
       if (v.length < 3) { showFieldHint(hint, 'At least 3 characters.', 'error', usernameEl); return; }
       if (!/^[a-zA-Z0-9_]+$/.test(v)) { showFieldHint(hint, 'Only letters, numbers, and underscores.', 'error', usernameEl); return; }
-      showFieldHint(hint, '✓ Looks good!', 'ok', usernameEl, true);
+      showFieldHint(hint, 'Looks good!', 'ok', usernameEl, true);
     });
 
-    // Confirm password live check
-    confirmEl.addEventListener('input', () => {
-      const hint = document.getElementById('confirm-hint');
+    emailEl.addEventListener('blur', function () {
+      var v = emailEl.value.trim();
+      var hint = document.getElementById('email-hint');
+      if (!v) { showFieldHint(hint, 'Email is required.', 'error', emailEl); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { showFieldHint(hint, 'Please enter a valid email.', 'error', emailEl); return; }
+      showFieldHint(hint, 'Looks good!', 'ok', emailEl, true);
+    });
+
+    confirmEl.addEventListener('input', function () {
+      var hint = document.getElementById('confirm-hint');
       if (!confirmEl.value) { hint.style.display = 'none'; return; }
       if (confirmEl.value !== passEl.value) {
         showFieldHint(hint, 'Passwords do not match.', 'error', confirmEl);
       } else {
-        showFieldHint(hint, '✓ Passwords match!', 'ok', confirmEl, true);
+        showFieldHint(hint, 'Passwords match!', 'ok', confirmEl, true);
       }
     });
 
-    function showFieldHint(hintEl, msg, type, inputEl, isValid = false) {
+    function showFieldHint(hintEl, msg, type, inputEl, isValid) {
       hintEl.textContent = msg;
       hintEl.className = 'field-hint ' + type;
       hintEl.style.display = 'block';
@@ -660,37 +194,32 @@
     }
 
     function showError(msg) {
-      errorAlert.textContent = '⚠ ' + msg;
+      errorAlert.textContent = msg;
       errorAlert.style.display = 'block';
       successAlert.style.display = 'none';
-      errorAlert.style.animation = 'none';
-      errorAlert.offsetHeight;
-      errorAlert.style.animation = '';
     }
 
     function showSuccess(msg) {
-      successAlert.textContent = '✓ ' + msg;
+      successAlert.textContent = msg;
       successAlert.style.display = 'block';
       errorAlert.style.display = 'none';
     }
 
     function setLoading(on) {
       registerBtn.disabled = on;
-      spinner.style.display = on ? 'block' : 'none';
-      btnText.textContent = on ? 'Creating space…' : 'Create Account ↗';
+      btnText.textContent = on ? 'Creating space...' : 'Create Account';
     }
 
-    document.getElementById('register-form').addEventListener('submit', async (e) => {
+    document.getElementById('register-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       errorAlert.style.display = 'none';
 
-      const username = usernameEl.value.trim();
-      const email    = emailEl.value.trim();
-      const password = passEl.value;
-      const confirm  = confirmEl.value;
-      const terms    = document.getElementById('terms').checked;
+      var username = usernameEl.value.trim();
+      var email = emailEl.value.trim();
+      var password = passEl.value;
+      var confirm = confirmEl.value;
+      var terms = document.getElementById('terms').checked;
 
-      // Client-side validation
       if (!username || !email || !password || !confirm) {
         return showError('Please fill in all fields.');
       }
@@ -698,13 +227,13 @@
         return showError('Username must be at least 3 characters.');
       }
       if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        return showError('Username can only have letters, numbers, and underscores.');
+        return showError('Username can only contain letters, numbers, and underscores.');
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return showError('Please enter a valid email address.');
       }
       if (password.length < 12 || new TextEncoder().encode(password).length > 72) {
-        return showError('Password must be at least 12 characters and at most 72 UTF-8 bytes.');
+        return showError('Password must be at least 12 characters.');
       }
       if (password !== confirm) {
         return showError('Passwords do not match.');
@@ -716,27 +245,29 @@
       setLoading(true);
 
       try {
-        const res  = await fetch('/api/register', {
+        var res = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password }),
+          body: JSON.stringify({ username: username, email: email, password: password })
         });
-        const data = await res.json();
+        var data = await res.json();
 
         if (!res.ok) {
-          showError(data.error || 'Registration failed.');
+          showError(data.error || 'Could not create your account. Please try again.');
           setLoading(false);
           return;
         }
 
-        showSuccess('Space initialized! Redirecting to sign in…');
-        setTimeout(() => window.location.replace('/login.html'), 1200);
-
+        showSuccess('Space created! Redirecting to sign in...');
+        setTimeout(function () { window.location.replace('/login.html'); }, 1200);
       } catch (err) {
-        showError('Cannot connect to server. Is it running?');
+        showError('Cannot reach the server. Check your connection and try again.');
         setLoading(false);
       }
     });
   </script>
+  <script src="/assets/mascot.js"></script>
+  <script src="/assets/auth-motion.js"></script>
 </body>
 </html>
+

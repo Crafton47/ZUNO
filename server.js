@@ -62,7 +62,7 @@ server.on('error', error => { console.error('[SERVER ERROR]', error.code || erro
 // YouTube embeds require client identification; never suppress the cross-origin Referer.
 app.use((req, res, next) => { res.set('Referrer-Policy', 'strict-origin-when-cross-origin'); next(); });
 app.use('/assets', express.static(path.join(__dirname, 'public')));
-for (const page of ['login.html', 'register.html', 'index.html']) {
+for (const page of ['login.html', 'register.html', 'index.html', 'terms.html', 'privacy.html']) {
   app.get('/' + page, (req, res) => res.sendFile(path.join(__dirname, page)));
 }
 app.get('/ideas', (req, res) => res.sendFile(path.join(__dirname, 'legacy.html')));
